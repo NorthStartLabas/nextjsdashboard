@@ -1,0 +1,239 @@
+{
+  "uptimeStart": null,
+  "runs": [
+    {
+      "id": "83906dad-d512-47e6-b4b5-27525c74a811",
+      "timestamp": "2026-02-23T12:10:00.016Z",
+      "durationMs": 36700,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 4490 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "cc06a37d-64f7-4476-9ef2-040c93c15c48",
+      "timestamp": "2026-02-23T12:05:00.037Z",
+      "durationMs": 103424,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 4415 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "d60d5da4-7e3f-43d4-9f8c-0a7076b2a4ee",
+      "timestamp": "2026-02-23T12:00:00.034Z",
+      "durationMs": 55439,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nInitiating login request with your identity provider. Press CTRL+C to abort and try again...\nGoing to open: https://login.microsoftonline.com/d73a39db-6eda-495d-8000-7579f56d68b7/saml2?SAMLRequest=nZJRc6IwFIX%2FCpN9BgIqYEbtoG5nnbEtRdyd9S2SoBkhoUkQu79%2BA%2BpM96F92LdMcu79Tu65k4dLVVpnKhUTfAo8BwKL8lwQxg9TsM0e7QhYSmNOcCk4nYJ3qsDDbKJwVdYobvSRp%2FStoUpbphFXqHuYgkZyJLBiCnFcUYV0jjbx0xr5DkRYKSq1wYFbCVHMsI5a18h127Z12oEj5MH1IYQuHLtG1Um%2BgQ%2BI%2BmtGLYUWuSjvJRfzp08QnguHHcIoDCG5Fc4Zv47gK8r%2BKlLoR5YldvKyyYAV33%2B3EFw1FZUbKs8sp9t0fTWgjIOnZZasF0n6snQaZVOstO05iou2KPGJ5qKqG20aO%2BbkFpS4pTgwM67VcgrqEyPhbv7rGONV%2FD0gqfwzjILm7bwbzL3T0%2B%2F0lBbaez1fcHTZNq85sH7ew%2FW7cFdKNXTFu0i1uYJ%2BYEPf9geZ5yMIERw5URDugLU0kTKOdV959937cCqWS6FEoQUvGae9SxIO8GBM9nZACbaH4xGxIxOfHY7CcTEKSBDtQ7cLzgfX5UG9ETn7j5FM3I8Nbqv4bNJZLRNRsvzdehSywvrz8DzH628YsYteimiFWRkTIqlSJsSyFO1CUqzNxmvZUODOrtR%2Fd372Fw%3D%3D&RelayState=ver%3A3-hint%3A6351892371788482-ETMsDgAAAZyKXvjrABRBRVMvQ0JDL1BLQ1M1UGFkZGluZwEAABAAEP3LT27ZA7vygZ6nCamR3JsAAACgAWy%2F%2BqYdMq2%2Brwaw1jJdFchmt5pv2Z4wJIdJy%2BPryO2BSZe5BNah2XnX7vnGpiSjhDo5Du0TR8OmL%2BfrRZVYvIRlUdJy%2BKzZXm7ClVgI3e0hwXLun7eSMtUV2xWufGLc1uY0TQOGqx8s2If4azKo6GdekoEHhAU21nF0vHFX3vLSXvc5%2BsERKqnSbrCG8x71IvlFXNF0cxR4PX%2BCu4WmagAU%2BpWM1TeKYjfI0Sh6fJG4vYLkUqk%3D to authenticate...\nA browser window should have opened for you to complete the login. If you can't see it, check existing browser windows, or your OS settings.\nFetching base data from SDS_CP_LTAP...\nFetching route data for 4384 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "7f88a3f4-a0ab-468e-8fa3-0d2e6908361f",
+      "timestamp": "2026-02-23T07:30:00.033Z",
+      "durationMs": 8156,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1832 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "d4c06e02-28b8-46fd-828f-d70bb615b538",
+      "timestamp": "2026-02-23T07:25:00.030Z",
+      "durationMs": 14232,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1832 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "5003c243-565b-41d1-be23-83d03a20f419",
+      "timestamp": "2026-02-23T07:23:02.148Z",
+      "durationMs": 10666,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1792 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "a6069a8c-f4e0-48cd-91d3-ea5476a1864d",
+      "timestamp": "2026-02-23T07:20:00.017Z",
+      "durationMs": 14059,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1709 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "57523c4c-fc00-4472-bf93-752e75da1dbe",
+      "timestamp": "2026-02-23T07:15:00.074Z",
+      "durationMs": 12664,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1650 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "9e033605-f1d8-48ac-9ce9-d75c209d9e37",
+      "timestamp": "2026-02-23T07:10:00.049Z",
+      "durationMs": 13095,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1509 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "a784375b-06cb-455e-8ce4-0da905034138",
+      "timestamp": "2026-02-23T07:05:00.029Z",
+      "durationMs": 13438,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1437 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "a89e4b2d-bd0f-4798-8a28-a2eca605e1a8",
+      "timestamp": "2026-02-23T07:00:00.068Z",
+      "durationMs": 12752,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1246 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "57a06032-e2c4-471a-bf02-ac9ee3fcd5bb",
+      "timestamp": "2026-02-23T06:55:00.034Z",
+      "durationMs": 11262,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1153 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "6d9d1040-3209-432a-b3a6-b9aeafc10a80",
+      "timestamp": "2026-02-23T06:50:00.032Z",
+      "durationMs": 13412,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 1091 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "540e18eb-7e9c-4d03-8208-c0ed7ad6e79a",
+      "timestamp": "2026-02-23T06:45:00.037Z",
+      "durationMs": 12257,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 933 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "e7d2ceb4-6516-463d-a1c7-2b48ec1a129a",
+      "timestamp": "2026-02-23T06:40:00.010Z",
+      "durationMs": 10535,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 841 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "df1c5ce7-1671-4b2f-b62f-63fc0ca3305c",
+      "timestamp": "2026-02-23T06:35:00.034Z",
+      "durationMs": 12060,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 728 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "e2bbfc05-f6d9-422a-9a9f-86b6d8dfa8f9",
+      "timestamp": "2026-02-23T06:30:20.309Z",
+      "durationMs": 7470,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 598 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "2eb12b11-e1e3-453d-bba4-cbc2a4c9f0c2",
+      "timestamp": "2026-02-23T06:30:00.028Z",
+      "durationMs": 15024,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 598 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "e2111dc0-3f8e-46cd-9105-4944d357cbc9",
+      "timestamp": "2026-02-23T06:26:22.901Z",
+      "durationMs": 11260,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 485 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "3c6ec23b-e40d-4246-b536-c1ee6285bc67",
+      "timestamp": "2026-02-23T06:17:53.130Z",
+      "durationMs": 31446,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-19\nFetching base data from SDS_CP_LTAP...\nFetching route data for 13297 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_custom_date"
+    },
+    {
+      "id": "114e490f-80b4-4c33-80a6-ad73bb685038",
+      "timestamp": "2026-02-23T06:17:30.081Z",
+      "durationMs": 9567,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-23\nFetching base data from SDS_CP_LTAP...\nFetching route data for 281 unique VBELN values...\nTransforming data...\nCalculating statistics...\nGenerated MS stats.\nGenerated CVNS stats.\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "3231a498-e0a3-418d-be8a-c796843f72d8",
+      "timestamp": "2026-02-23T06:16:52.916Z",
+      "durationMs": 14,
+      "success": false,
+      "output": "",
+      "error": "Command failed: python process_data.py\n/bin/sh: python: command not found\n",
+      "type": "manual_today"
+    }
+  ],
+  "cronJobs": [
+    {
+      "id": "25f00e90-9d68-41a1-9465-f3f10c484248",
+      "name": "Daily Run",
+      "expression": "*/5 7-23 * * 1-5",
+      "isActive": true,
+      "createdAt": "2026-02-23T06:25:55.656Z",
+      "lastRun": "2026-02-23T12:10:36.717Z"
+    }
+  ],
+  "thresholds": {
+    "cvns_A": {
+      "emerald": 50,
+      "blue": 35,
+      "orange": 30,
+      "red": 0
+    },
+    "cvns_B": {
+      "emerald": 100,
+      "blue": 60,
+      "orange": 40,
+      "red": 0
+    },
+    "ms_A": {
+      "emerald": 100,
+      "blue": 60,
+      "orange": 40,
+      "red": 0
+    },
+    "ms_B": {
+      "emerald": 100,
+      "blue": 60,
+      "orange": 40,
+      "red": 0
+    }
+  }
+}
