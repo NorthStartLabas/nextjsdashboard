@@ -1,0 +1,461 @@
+{
+    "open_deliveries": 47,
+    "open_hus": 19,
+    "hu_summary": {
+        "total": 19,
+        "picked": 8,
+        "not_picked": 11,
+        "avg_lines_per_hu": 2.21,
+        "avg_items_per_hu": 28.11
+    },
+    "priorities": {
+        "30": 42
+    },
+    "priority_hus": {
+        "30": 19
+    },
+    "cutoffs": {
+        "2025-05-19 00:00:00": {
+            "total_deliveries": 10,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2025-05-20 20:59:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 4,
+            "picked_lines": 4,
+            "dp10_lines": 0,
+            "total_hus": 2,
+            "picked_hus": 2
+        },
+        "2025-11-26 16:29:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2025-12-05 19:29:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 4,
+            "picked_lines": 4,
+            "dp10_lines": 0,
+            "total_hus": 3,
+            "picked_hus": 3
+        },
+        "2026-01-09 20:59:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-01-26 20:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 1,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 1,
+            "picked_hus": 0
+        },
+        "2026-02-03 20:59:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 3,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 1,
+            "picked_hus": 0
+        },
+        "2026-02-06 20:59:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 6,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 4,
+            "picked_hus": 0
+        },
+        "2026-02-06 23:59:00": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 2,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 1,
+            "picked_hus": 0
+        },
+        "2026-02-09 00:00:00": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-02-16 16:29:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-02-16 18:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-02-17 19:59:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 2,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 2,
+            "picked_hus": 0
+        },
+        "2026-02-18 16:29:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 10,
+            "picked_lines": 10,
+            "dp10_lines": 0,
+            "total_hus": 2,
+            "picked_hus": 2
+        },
+        "2026-02-18 20:59:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 2,
+            "picked_lines": 1,
+            "dp10_lines": 0,
+            "total_hus": 2,
+            "picked_hus": 1
+        },
+        "2026-02-19 13:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-02-19 18:59:59": {
+            "total_deliveries": 8,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-02-19 20:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 2,
+            "picked_lines": 1,
+            "dp10_lines": 0,
+            "total_hus": 1,
+            "picked_hus": 0
+        },
+        "2026-02-20 22:59:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 3,
+            "picked_lines": 3,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-02-24 17:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 3,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-02-24 19:29:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-02-24 20:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        }
+    },
+    "summary": {
+        "total": {
+            "lines": 42,
+            "items": 534,
+            "kg": 159.37,
+            "vol": 1311163.2
+        },
+        "picked": {
+            "lines": 23,
+            "items": 370,
+            "kg": 132.72,
+            "vol": 1055143.23
+        },
+        "not_picked": {
+            "lines": 19,
+            "items": 164,
+            "kg": 26.65,
+            "vol": 256019.97
+        }
+    },
+    "vltyp_distribution": {
+        "GP2": {
+            "total": {
+                "lines": 22,
+                "items": 396,
+                "kg": 46.89,
+                "vol": 427891.75
+            },
+            "picked": {
+                "lines": 8,
+                "items": 242,
+                "kg": 22.83,
+                "vol": 210971.81
+            },
+            "not_picked": {
+                "lines": 14,
+                "items": 154,
+                "kg": 24.06,
+                "vol": 216919.95
+            }
+        },
+        "GA4": {
+            "total": {
+                "lines": 12,
+                "items": 12,
+                "kg": 10.97,
+                "vol": 62754.9
+            },
+            "picked": {
+                "lines": 9,
+                "items": 9,
+                "kg": 10.53,
+                "vol": 61236.0
+            },
+            "not_picked": {
+                "lines": 3,
+                "items": 3,
+                "kg": 0.44,
+                "vol": 1518.9
+            }
+        },
+        "SP2": {
+            "total": {
+                "lines": 1,
+                "items": 15,
+                "kg": 28.32,
+                "vol": 89461.5
+            },
+            "picked": {
+                "lines": 1,
+                "items": 15,
+                "kg": 28.32,
+                "vol": 89461.5
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        },
+        "GA2": {
+            "total": {
+                "lines": 3,
+                "items": 8,
+                "kg": 2.41,
+                "vol": 37991.24
+            },
+            "picked": {
+                "lines": 1,
+                "items": 1,
+                "kg": 0.26,
+                "vol": 410.12
+            },
+            "not_picked": {
+                "lines": 2,
+                "items": 7,
+                "kg": 2.15,
+                "vol": 37581.12
+            }
+        },
+        "DEM": {
+            "total": {
+                "lines": 3,
+                "items": 3,
+                "kg": 68.71,
+                "vol": 676323.81
+            },
+            "picked": {
+                "lines": 3,
+                "items": 3,
+                "kg": 68.71,
+                "vol": 676323.81
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        },
+        "GB2": {
+            "total": {
+                "lines": 1,
+                "items": 100,
+                "kg": 2.07,
+                "vol": 16740.0
+            },
+            "picked": {
+                "lines": 1,
+                "items": 100,
+                "kg": 2.07,
+                "vol": 16740.0
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        }
+    },
+    "kober_distribution": {
+        "PA2": {
+            "total": {
+                "lines": 16,
+                "items": 257,
+                "kg": 36.55,
+                "vol": 347286.62
+            },
+            "picked": {
+                "lines": 7,
+                "items": 142,
+                "kg": 20.76,
+                "vol": 194231.81
+            },
+            "not_picked": {
+                "lines": 9,
+                "items": 115,
+                "kg": 15.79,
+                "vol": 153054.82
+            }
+        },
+        "PA4": {
+            "total": {
+                "lines": 15,
+                "items": 20,
+                "kg": 13.38,
+                "vol": 100746.14
+            },
+            "picked": {
+                "lines": 10,
+                "items": 10,
+                "kg": 10.79,
+                "vol": 61646.12
+            },
+            "not_picked": {
+                "lines": 5,
+                "items": 10,
+                "kg": 2.59,
+                "vol": 39100.02
+            }
+        },
+        "PA3": {
+            "total": {
+                "lines": 7,
+                "items": 239,
+                "kg": 12.41,
+                "vol": 97345.13
+            },
+            "picked": {
+                "lines": 2,
+                "items": 200,
+                "kg": 4.13,
+                "vol": 33480.0
+            },
+            "not_picked": {
+                "lines": 5,
+                "items": 39,
+                "kg": 8.27,
+                "vol": 63865.13
+            }
+        },
+        "PA6": {
+            "total": {
+                "lines": 1,
+                "items": 15,
+                "kg": 28.32,
+                "vol": 89461.5
+            },
+            "picked": {
+                "lines": 1,
+                "items": 15,
+                "kg": 28.32,
+                "vol": 89461.5
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        },
+        "nan": {
+            "total": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        }
+    }
+}

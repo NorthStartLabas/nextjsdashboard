@@ -1,0 +1,200 @@
+{
+    "open_deliveries": 3,
+    "open_hus": 3,
+    "hu_summary": {
+        "total": 3,
+        "picked": 3,
+        "not_picked": 0,
+        "avg_lines_per_hu": 2.67,
+        "avg_items_per_hu": 2.67
+    },
+    "priorities": {
+        "10": 2,
+        "30": 6
+    },
+    "priority_hus": {
+        "10": 1,
+        "30": 2
+    },
+    "cutoffs": {
+        "2026-02-25 19:29:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 1,
+            "total_lines": 2,
+            "picked_lines": 2,
+            "dp10_lines": 2,
+            "total_hus": 1,
+            "picked_hus": 1
+        },
+        "2026-02-25 20:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 6,
+            "picked_lines": 6,
+            "dp10_lines": 0,
+            "total_hus": 2,
+            "picked_hus": 2
+        },
+        "2026-02-25 22:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        }
+    },
+    "summary": {
+        "total": {
+            "lines": 8,
+            "items": 8,
+            "kg": 2.13,
+            "vol": 11343.82
+        },
+        "picked": {
+            "lines": 8,
+            "items": 8,
+            "kg": 2.13,
+            "vol": 11343.82
+        },
+        "not_picked": {
+            "lines": 0,
+            "items": 0,
+            "kg": 0.0,
+            "vol": 0.0
+        }
+    },
+    "vltyp_distribution": {
+        "GP2": {
+            "total": {
+                "lines": 4,
+                "items": 4,
+                "kg": 0.68,
+                "vol": 2825.48
+            },
+            "picked": {
+                "lines": 4,
+                "items": 4,
+                "kg": 0.68,
+                "vol": 2825.48
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        },
+        "GA4": {
+            "total": {
+                "lines": 3,
+                "items": 3,
+                "kg": 1.43,
+                "vol": 8286.5
+            },
+            "picked": {
+                "lines": 3,
+                "items": 3,
+                "kg": 1.43,
+                "vol": 8286.5
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        },
+        "GA2": {
+            "total": {
+                "lines": 1,
+                "items": 1,
+                "kg": 0.02,
+                "vol": 231.84
+            },
+            "picked": {
+                "lines": 1,
+                "items": 1,
+                "kg": 0.02,
+                "vol": 231.84
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        }
+    },
+    "kober_distribution": {
+        "PA3": {
+            "total": {
+                "lines": 1,
+                "items": 1,
+                "kg": 0.15,
+                "vol": 1104.78
+            },
+            "picked": {
+                "lines": 1,
+                "items": 1,
+                "kg": 0.15,
+                "vol": 1104.78
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        },
+        "PA2": {
+            "total": {
+                "lines": 3,
+                "items": 3,
+                "kg": 0.53,
+                "vol": 1720.7
+            },
+            "picked": {
+                "lines": 3,
+                "items": 3,
+                "kg": 0.53,
+                "vol": 1720.7
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        },
+        "PA4": {
+            "total": {
+                "lines": 4,
+                "items": 4,
+                "kg": 1.45,
+                "vol": 8518.34
+            },
+            "picked": {
+                "lines": 4,
+                "items": 4,
+                "kg": 1.45,
+                "vol": 8518.34
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        }
+    },
+    "closed_today": {
+        "deliveries": 5144,
+        "hus": 5441,
+        "lines": 8363,
+        "items": 118865,
+        "vol": 160.614,
+        "kg": 16945.34
+    }
+}

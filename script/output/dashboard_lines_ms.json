@@ -1,0 +1,90 @@
+[
+    {
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "VLPLA":"C14400B",
+        "VLTYP":"GP2",
+        "KOBER":"PA3",
+        "UMREZ":1,
+        "BRGEW":0.152,
+        "VOLUM":1104.78
+    },
+    {
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "VLPLA":"B1422BC",
+        "VLTYP":"GP2",
+        "KOBER":"PA2",
+        "UMREZ":1,
+        "BRGEW":0.169,
+        "VOLUM":466.55
+    },
+    {
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "VLPLA":"D61652O",
+        "VLTYP":"GA4",
+        "KOBER":"PA4",
+        "UMREZ":1,
+        "BRGEW":0.48,
+        "VOLUM":1886.5
+    },
+    {
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "VLPLA":"B1730BB",
+        "VLTYP":"GP2",
+        "KOBER":"PA2",
+        "UMREZ":1,
+        "BRGEW":0.191,
+        "VOLUM":1206.9
+    },
+    {
+        "VBELN":"1470089637",
+        "LPRIO":"10",
+        "WAUHR":"2026-02-25 19:29:59",
+        "VLPLA":"D61631A",
+        "VLTYP":"GA4",
+        "KOBER":"PA4",
+        "UMREZ":1,
+        "BRGEW":0.476,
+        "VOLUM":3200.0
+    },
+    {
+        "VBELN":"1470089637",
+        "LPRIO":"10",
+        "WAUHR":"2026-02-25 19:29:59",
+        "VLPLA":"D59631A",
+        "VLTYP":"GA4",
+        "KOBER":"PA4",
+        "UMREZ":1,
+        "BRGEW":0.476,
+        "VOLUM":3200.0
+    },
+    {
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "VLPLA":"D67641P",
+        "VLTYP":"GA2",
+        "KOBER":"PA4",
+        "UMREZ":1,
+        "BRGEW":0.019,
+        "VOLUM":231.84
+    },
+    {
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "VLPLA":"B1726BD",
+        "VLTYP":"GP2",
+        "KOBER":"PA2",
+        "UMREZ":1,
+        "BRGEW":0.167,
+        "VOLUM":47.25
+    }
+]

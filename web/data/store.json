@@ -909,7 +909,7 @@
       "expression": "*/5 7-23 * * 1-5",
       "isActive": true,
       "createdAt": "2026-02-23T06:25:55.656Z",
-      "lastRun": "2026-02-25T21:59:15.305Z"
+      "lastRun": "2026-02-25T22:05:00.211Z"
     }
   ],
   "thresholds": {
