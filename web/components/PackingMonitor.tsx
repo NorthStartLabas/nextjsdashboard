@@ -11,9 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Box, Layers, Users, Zap, Search, ClipboardList, Timer, Divide, Trophy, User, Activity, Clock, Circle } from "lucide-react";
+import { ArrowRight, Box, Layers, Users, Zap, Search, ClipboardList, Timer, Divide, Trophy, User, Activity, Clock, Circle, Package } from "lucide-react";
 
-export default function PickingMonitor({ title, type }: { title: any, type: any }) {
+export default function PackingMonitor({ title, type }: { title: string, type: 'ms' | 'cvns' }) {
     const [data, setData] = useState({ daily: [], hourly: [] });
     const [thresholds, setThresholds] = useState<any>(null);
     const [blacklist, setBlacklist] = useState<string[]>([]);
@@ -24,14 +24,14 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
     const [selectedFloors, setSelectedFloors] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [lastRefreshed, setLastRefreshed] = useState("");
-    const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'LINES_PICKED', direction: 'desc' });
+    const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'BOXES_PACKED', direction: 'desc' });
 
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
     const fetchData = async () => {
         try {
             const [res, threshRes, userRes] = await Promise.all([
-                fetch(`/api/dashboard-data?type=${type}`),
+                fetch(`/api/dashboard-data?type=${type}&activity=packing`),
                 fetch(`/api/thresholds`),
                 fetch(`/api/users`)
             ]);
@@ -64,7 +64,6 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
         setLoading(true);
         fetchData();
 
-        // Calculate time to next 5-minute mark
         const now = new Date();
         const minutes = now.getMinutes();
         const seconds = now.getSeconds();
@@ -108,25 +107,30 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
     }, [data.daily]);
 
     const filteredDaily = useMemo(() => {
-        let sorted = [...data.daily].filter((row: any) =>
-            row.FLOW === activeFlow &&
-            selectedFloors.includes(row.FLOOR) &&
-            !blacklist.includes(row.QNAME) &&
-            (row.QNAME?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (userMappings[row.QNAME]?.toLowerCase().includes(searchQuery.toLowerCase()) || false))
-        );
+        let sorted = data.daily.filter((row: any) => {
+            // Filter by flow and floor
+            if (row.FLOW !== activeFlow || !selectedFloors.includes(row.FLOOR)) return false;
+
+            // MS Special: Exclude conveyor from table ONLY for B-flow
+            if (type === 'ms' && activeFlow === 'B-flow' && row.QNAME === 'WEBMREMOTEWS') return false;
+
+            // Blacklist check
+            if (blacklist.includes(row.QNAME)) return false;
+
+            // Search query
+            const name = row.QNAME?.toLowerCase() || "";
+            const mapping = userMappings[row.QNAME]?.toLowerCase() || "";
+            const search = searchQuery.toLowerCase();
+            return name.includes(search) || mapping.includes(search);
+        });
 
         if (sortConfig) {
             sorted.sort((a: any, b: any) => {
                 let aVal, bVal;
                 switch (sortConfig.key) {
-                    case 'LINES_PICKED':
-                        aVal = a.LINES_PICKED;
-                        bVal = b.LINES_PICKED;
-                        break;
-                    case 'RATIO':
-                        aVal = parseFloat(a.RATIO);
-                        bVal = parseFloat(b.RATIO);
+                    case 'BOXES_PACKED':
+                        aVal = a.BOXES_PACKED;
+                        bVal = b.BOXES_PACKED;
                         break;
                     case 'EFFORT':
                         aVal = parseFloat(a.EFFORT);
@@ -140,30 +144,37 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                         aVal = 0;
                         bVal = 0;
                 }
-
                 if (sortConfig.direction === 'asc') return aVal - bVal;
                 return bVal - aVal;
             });
         }
 
         return sorted;
-    }, [data.daily, activeFlow, selectedFloors, searchQuery, blacklist, userMappings, sortConfig]);
+    }, [data.daily, activeFlow, selectedFloors, searchQuery, blacklist, userMappings, type, sortConfig]);
 
     const chartData = useMemo(() => {
-        const hourlyFiltered = data.hourly.filter((row: any) =>
-            row.FLOW === activeFlow && selectedFloors.includes(row.FLOOR) && !blacklist.includes(row.QNAME)
-        );
+        const hourlyFiltered = data.hourly.filter((row: any) => {
+            if (row.FLOW !== activeFlow || !selectedFloors.includes(row.FLOOR)) return false;
 
-        const byHour: Record<number, { lines: number, users: Set<string> }> = {};
+            // MS Special: Show ONLY conveyor in chart for B-flow
+            if (type === 'ms' && activeFlow === 'B-flow') {
+                return row.QNAME === 'WEBMREMOTEWS';
+            }
+
+            // CVNS: Show all non-blacklisted users
+            return !blacklist.includes(row.QNAME);
+        });
+
+        const byHour: Record<number, { boxes: number, users: Set<string> }> = {};
 
         for (let i = 0; i < 24; i++) {
-            byHour[i] = { lines: 0, users: new Set() };
+            byHour[i] = { boxes: 0, users: new Set() };
         }
 
         hourlyFiltered.forEach((row: any) => {
             if (row.HOUR >= 0 && row.HOUR < 24) {
-                byHour[row.HOUR].lines += row.LINES_PICKED;
-                if (row.LINES_PICKED > 0) {
+                byHour[row.HOUR].boxes += row.BOXES_PACKED;
+                if (row.BOXES_PACKED > 0) {
                     byHour[row.HOUR].users.add(row.QNAME);
                 }
             }
@@ -171,10 +182,10 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
 
         return Object.entries(byHour).map(([hour, stats]) => ({
             hour: `${hour.padStart(2, '0')}:00`,
-            lines: stats.lines,
+            boxes: stats.boxes,
             users: stats.users.size
-        })).filter(d => d.lines > 0 || d.users > 0);
-    }, [data.hourly, activeFlow, selectedFloors, blacklist]);
+        })).filter(d => d.boxes > 0 || d.users > 0);
+    }, [data.hourly, activeFlow, selectedFloors, blacklist, type]);
 
     const cascadeData = useMemo(() => {
         if (!selectedUser) return [];
@@ -196,24 +207,22 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
         const statusMap: Record<string, 'Active' | 'Idle' | 'Away'> = {};
         const activeToday = new Set<string>();
 
-        // Filter hourly data for current context (flow/floors/blacklist)
         const relevantHourly = data.hourly.filter((row: any) =>
             row.FLOW === activeFlow &&
             selectedFloors.includes(row.FLOOR) &&
-            !blacklist.includes(row.QNAME)
+            !blacklist.includes(row.QNAME) &&
+            (type === 'ms' && activeFlow === 'B-flow' ? row.QNAME !== 'WEBMREMOTEWS' : true)
         );
 
-        // Group by user to find their latest activity hour
         const userLastHour: Record<string, number> = {};
         relevantHourly.forEach((row: any) => {
-            if (row.LINES_PICKED > 0) {
+            if (row.BOXES_PACKED > 0) {
                 if (userLastHour[row.QNAME] === undefined || row.HOUR > userLastHour[row.QNAME]) {
                     userLastHour[row.QNAME] = row.HOUR;
                 }
             }
         });
 
-        // Determine status for each user in the daily list
         filteredDaily.forEach((user: any) => {
             const lastH = userLastHour[user.QNAME];
             if (lastH === currentHour) {
@@ -230,7 +239,39 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
             statusMap,
             activeThisHour: activeToday.size
         };
-    }, [data.hourly, filteredDaily, activeFlow, selectedFloors, blacklist]);
+    }, [data.hourly, filteredDaily, activeFlow, selectedFloors, blacklist, type]);
+
+    const getThresholdsForUser = (floor?: string) => {
+        const flowKey = `${type}_packing_${activeFlow.charAt(0)}`;
+        const specificKey = floor ? `${flowKey}_${floor}` : flowKey;
+        return thresholds?.[specificKey] || thresholds?.[flowKey] || { emerald: 100, blue: 60, orange: 40, red: 0 };
+    };
+
+    const getPerformanceBg = (score: number, floor?: string) => {
+        // Only show colors for CVNS B-flow
+        const isCVNSB = type === 'cvns' && activeFlow === 'B-flow';
+
+        if (!isCVNSB) return "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50";
+
+        const thresh = getThresholdsForUser(floor);
+        if (score >= thresh.emerald) return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+        if (score >= thresh.blue) return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
+        if (score >= thresh.orange) return "bg-orange-500/10 text-orange-400 border border-orange-500/20";
+        return "bg-red-500/10 text-red-500 border border-red-500/20";
+    };
+
+    const getPerformanceText = (score: number, floor?: string) => {
+        // Only show colors for CVNS B-flow
+        const isCVNSB = type === 'cvns' && activeFlow === 'B-flow';
+
+        if (!isCVNSB) return "text-zinc-300";
+
+        const thresh = getThresholdsForUser(floor);
+        if (score >= thresh.emerald) return "text-emerald-400";
+        if (score >= thresh.blue) return "text-blue-500";
+        if (score >= thresh.orange) return "text-orange-400";
+        return "text-red-500";
+    };
 
     if (loading) {
         return (
@@ -245,55 +286,16 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
         );
     }
 
-    const getThresholdsForUser = (floor?: string) => {
-        const flowKey = `${type}_${activeFlow.charAt(0)}`;
-        // Try floor-specific first (e.g., cvns_A_ground_floor), then fallback to general (e.g., cvns_A)
-        const specificKey = floor ? `${flowKey}_${floor}` : flowKey;
-        return thresholds?.[specificKey] || thresholds?.[flowKey] || { emerald: 100, blue: 60, orange: 40, red: 0 };
-    };
-
-    const getPerformanceBg = (score: number, floor?: string) => {
-        // Only show colors for CVNS B-flow and MS (both flows)
-        const isCVNSB = type === 'cvns' && activeFlow === 'B-flow';
-        const isMS = type === 'ms';
-
-        if (!isCVNSB && !isMS) return "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50";
-
-        const thresh = getThresholdsForUser(floor);
-        if (score >= thresh.emerald) return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-        if (score >= thresh.blue) return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
-        if (score >= thresh.orange) return "bg-orange-500/10 text-orange-400 border border-orange-500/20";
-        return "bg-red-500/10 text-red-500 border border-red-500/20";
-    };
-
-    const getPerformanceText = (score: number, floor?: string) => {
-        // Only show colors for CVNS B-flow and MS (both flows)
-        const isCVNSB = type === 'cvns' && activeFlow === 'B-flow';
-        const isMS = type === 'ms';
-
-        if (!isCVNSB && !isMS) return "text-zinc-300";
-
-        const thresh = getThresholdsForUser(floor);
-        if (score >= thresh.emerald) return "text-emerald-400";
-        if (score >= thresh.blue) return "text-blue-500";
-        if (score >= thresh.orange) return "text-orange-400";
-        return "text-red-500";
-    };
-
     return (
         <div className="min-h-screen bg-[#09090b] text-zinc-100 p-4 md:p-8 font-sans selection:bg-white/10 selection:text-white">
             <div className="max-w-7xl mx-auto space-y-8">
-
-                {/* Header Section */}
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-4 border-b border-zinc-900/50">
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                                <Activity className="w-6 h-6 text-emerald-500" />
+                            <div className="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
+                                <Package className="w-6 h-6 text-purple-500" />
                             </div>
-                            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">
-                                {title}
-                            </h1>
+                            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">{title}</h1>
                             <div className="flex items-center gap-2">
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-medium">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute animate-ping opacity-20" />
@@ -307,11 +309,8 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                                 )}
                             </div>
                         </div>
-                        <p className="text-sm text-zinc-400 font-medium">
-                            Real-time picking analytics and performance metrics
-                        </p>
+                        <p className="text-sm text-zinc-400 font-medium">Real-time packing analytics and performance metrics</p>
                     </div>
-
                     <div className="flex p-1 bg-zinc-950/50 rounded-xl border border-zinc-800 h-11">
                         {['A-flow', 'B-flow'].map((flow) => (
                             <button
@@ -335,13 +334,18 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                     </div>
                 </header>
 
-                {/* Chart Section */}
                 <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
                     <CardHeader className="pb-4 border-b border-zinc-800/40 bg-zinc-900/10">
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
-                                <CardTitle className="text-base text-zinc-200">Hourly Performance</CardTitle>
-                                <CardDescription className="text-zinc-500">Bars represent total lines picked per hour, while the white line tracks active personnel.</CardDescription>
+                                <CardTitle className="text-base text-zinc-200">
+                                    {type === 'ms' && activeFlow === 'B-flow' ? 'Conveyor Activity' : 'Hourly Performance'}
+                                </CardTitle>
+                                <CardDescription className="text-zinc-500">
+                                    {type === 'ms' && activeFlow === 'B-flow'
+                                        ? 'Bars represent boxes processed by the conveyor system per hour.'
+                                        : 'Bars represent total boxes packed per hour, while the white line tracks active personnel.'}
+                                </CardDescription>
                             </div>
                         </div>
                     </CardHeader>
@@ -351,133 +355,66 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                                 <ResponsiveContainer width="100%" height="100%">
                                     <ComposedChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
                                         <CartesianGrid strokeDasharray="4 4" stroke="#27272a" vertical={false} />
-                                        <XAxis
-                                            dataKey="hour"
-                                            stroke="#52525b"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            dy={10}
-                                        />
-                                        <YAxis
-                                            yAxisId="left"
-                                            stroke="#52525b"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tickFormatter={(val) => `${val}`}
-                                        />
-                                        <YAxis
-                                            yAxisId="right"
-                                            orientation="right"
-                                            stroke="#52525b"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            hide
-                                        />
+                                        <XAxis dataKey="hour" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} dy={10} />
+                                        <YAxis yAxisId="left" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis yAxisId="right" orientation="right" hide />
                                         <RechartsTooltip
                                             cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                                            contentStyle={{
-                                                backgroundColor: '#09090b',
-                                                border: '1px solid #27272a',
-                                                borderRadius: '8px',
-                                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
-                                                padding: '12px'
-                                            }}
-                                            itemStyle={{ fontSize: '13px', color: '#e4e4e7' }}
-                                            labelStyle={{ color: '#a1a1aa', marginBottom: '8px', fontSize: '12px' }}
+                                            contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '8px' }}
                                         />
-                                        <Bar
-                                            yAxisId="left"
-                                            dataKey="lines"
-                                            name="Lines Picked"
-                                            fill="#2563eb"
-                                            radius={[4, 4, 0, 0]}
-                                            barSize={32}
-                                            fillOpacity={0.8}
-                                        />
-                                        <Line
-                                            yAxisId="right"
-                                            type="monotone"
-                                            dataKey="users"
-                                            name="Active Users"
-                                            stroke="#e4e4e7"
-                                            strokeWidth={2}
-                                            dot={{ r: 3, fill: '#09090b', strokeWidth: 2, stroke: '#e4e4e7' }}
-                                            activeDot={{ r: 5, strokeWidth: 0, fill: '#fff' }}
-                                        />
+                                        <Bar yAxisId="left" dataKey="boxes" name="Boxes Packed" fill={type === 'ms' && activeFlow === 'B-flow' ? '#10b981' : '#2563eb'} radius={[4, 4, 0, 0]} barSize={32} fillOpacity={0.8} />
+                                        {!(type === 'ms' && activeFlow === 'B-flow') && (
+                                            <Line yAxisId="right" type="monotone" dataKey="users" name="Active Users" stroke="#e4e4e7" strokeWidth={2} dot={{ r: 3, fill: '#09090b', strokeWidth: 2, stroke: '#e4e4e7' }} activeDot={{ r: 5, strokeWidth: 0, fill: '#fff' }} />
+                                        )}
                                     </ComposedChart>
                                 </ResponsiveContainer>
                             </div>
                         ) : (
                             <div className="h-[300px] flex flex-col items-center justify-center text-zinc-500 gap-3">
                                 <Box className="h-8 w-8 opacity-20" />
-                                <p className="text-sm font-medium">No data available for this selection</p>
+                                <p className="text-sm font-medium">No data available</p>
                             </div>
                         )}
                     </CardContent>
                 </Card>
 
-                {/* Filters Section */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
                     <div className="relative w-full sm:max-w-xs">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
                         <Input
                             placeholder="Search by operator..."
-                            className="h-10 pl-9 bg-zinc-900/30 border-zinc-800/50 text-sm font-medium placeholder:text-zinc-500 focus-visible:ring-zinc-700 rounded-xl"
+                            className="h-10 pl-9 bg-zinc-900/30 border-zinc-800/50 rounded-xl"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-600/10 border border-blue-600/20 text-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.05)]">
                             <Users className="w-4 h-4" />
-                            <span className="text-xs font-bold uppercase tracking-wider">
-                                {activityMetrics.activeThisHour} Personnel Active
-                            </span>
+                            <span className="text-xs font-bold uppercase tracking-wider">{activityMetrics.activeThisHour} Personnel Active</span>
                         </div>
                         {availableFloors.map(floor => (
-                            <Label
-                                key={floor as string}
-                                className={cn(
-                                    "flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-colors border select-none",
-                                    selectedFloors.includes(floor as string)
-                                        ? "bg-white/10 border-white/20 text-zinc-100"
-                                        : "bg-transparent border-transparent text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-300"
-                                )}
-                            >
-                                <Checkbox
-                                    checked={selectedFloors.includes(floor as string)}
-                                    onCheckedChange={() => handleFloorToggle(floor as string)}
-                                    className="hidden"
-                                />
+                            <Label key={floor as string} className={cn("flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer border", selectedFloors.includes(floor as string) ? "bg-white/10 text-zinc-100" : "text-zinc-400 hover:bg-zinc-800/40")}>
+                                <Checkbox checked={selectedFloors.includes(floor as string)} onCheckedChange={() => handleFloorToggle(floor as string)} className="hidden" />
                                 <Layers className="w-3.5 h-3.5" />
-                                <span className="text-xs font-semibold uppercase tracking-wider">
-                                    {(floor as string).replace('_', ' ')}
-                                </span>
+                                <span className="text-xs font-semibold uppercase">{floor.replace('_', ' ')}</span>
                             </Label>
                         ))}
                     </div>
                 </div>
 
-                {/* Data Table */}
                 <div className="rounded-2xl border border-zinc-800/40 bg-zinc-900/20 overflow-hidden">
                     <Table>
-                        <TableHeader className="bg-zinc-900/60 hover:bg-zinc-900/60 border-b border-zinc-800/40">
+                        <TableHeader className="bg-zinc-900/60 border-b border-zinc-800/40">
                             <TableRow className="border-none hover:bg-transparent">
-                                <TableHead className="py-4 pl-6 text-xs font-semibold tracking-wider text-zinc-400 uppercase">Operator</TableHead>
-                                <TableHead onClick={() => handleSort('LINES_PICKED')} className="py-4 text-center text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
-                                    Activity {sortConfig?.key === 'LINES_PICKED' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                                <TableHead className="py-4 pl-6 text-xs font-semibold text-zinc-400 uppercase">Operator</TableHead>
+                                <TableHead onClick={() => handleSort('BOXES_PACKED')} className="py-4 text-center text-xs font-semibold text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
+                                    Boxes Packed {sortConfig?.key === 'BOXES_PACKED' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                                 </TableHead>
-                                <TableHead onClick={() => handleSort('RATIO')} className="py-4 text-right text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
-                                    Ratio {sortConfig?.key === 'RATIO' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                                </TableHead>
-                                <TableHead onClick={() => handleSort('EFFORT')} className="py-4 text-right text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
+                                <TableHead onClick={() => handleSort('EFFORT')} className="py-4 text-right text-xs font-semibold text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
                                     Effort {sortConfig?.key === 'EFFORT' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                                 </TableHead>
-                                <TableHead onClick={() => handleSort('PRODUCTIVITY')} className="py-4 pr-6 text-right text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
+                                <TableHead onClick={() => handleSort('PRODUCTIVITY')} className="py-4 pr-6 text-right text-xs font-semibold text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
                                     Performance {sortConfig?.key === 'PRODUCTIVITY' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                                 </TableHead>
                             </TableRow>
@@ -490,8 +427,6 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                                             layout
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0 }}
-                                            transition={{ duration: 0.2 }}
                                             key={`${row.QNAME}-${row.FLOOR}-${idx}`}
                                             className="group cursor-pointer border-b border-zinc-800/20 hover:bg-zinc-800/30 transition-colors"
                                             onClick={() => setSelectedUser(row.QNAME)}
@@ -499,63 +434,28 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                                             <TableCell className="py-4 pl-6">
                                                 <div className="flex flex-col gap-1.5">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-semibold text-zinc-100 group-hover:text-[#2563eb] transition-colors">
-                                                            {userMappings[row.QNAME] || row.QNAME}
-                                                        </span>
+                                                        <span className="text-sm font-semibold text-zinc-100 group-hover:text-[#2563eb] transition-colors">{userMappings[row.QNAME] || row.QNAME}</span>
                                                         {(() => {
                                                             const status = activityMetrics.statusMap[row.QNAME];
-                                                            if (status === 'Active') return (
-                                                                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-[9px] font-black uppercase tracking-tighter text-emerald-500 border border-emerald-500/20">
-                                                                    <Circle className="w-1.5 h-1.5 fill-current animate-pulse" /> Active
-                                                                </span>
-                                                            );
-                                                            if (status === 'Idle') return (
-                                                                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-[9px] font-black uppercase tracking-tighter text-amber-500 border border-amber-500/20">
-                                                                    <Circle className="w-1.5 h-1.5 fill-current" /> Idle
-                                                                </span>
-                                                            );
-                                                            return (
-                                                                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-500/10 text-[9px] font-black uppercase tracking-tighter text-zinc-500 border border-zinc-800">
-                                                                    Away
-                                                                </span>
-                                                            );
+                                                            if (status === 'Active') return <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-[9px] text-emerald-500 border border-emerald-500/20">Active</span>;
+                                                            if (status === 'Idle') return <span className="px-1.5 py-0.5 rounded-full bg-amber-500/10 text-[9px] text-amber-500 border border-amber-500/20">Idle</span>;
+                                                            return <span className="px-1.5 py-0.5 rounded-full bg-zinc-500/10 text-[9px] text-zinc-500 border border-zinc-800">Away</span>;
                                                         })()}
                                                     </div>
-                                                    <span className="text-[10px] font-medium text-zinc-500 uppercase flex items-center gap-1 text-zinc-600">
-                                                        <Layers className="w-3 h-3" />
-                                                        {row.FLOOR?.replace('_', ' ')}
-                                                        {userMappings[row.QNAME] && <span className="ml-1 text-zinc-700 font-mono">• {row.QNAME}</span>}
+                                                    <span className="text-[10px] text-zinc-500 uppercase flex items-center gap-1">
+                                                        <Layers className="w-3 h-3" /> {row.FLOOR?.replace('_', ' ')}
                                                     </span>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="py-4">
-                                                <div className="flex flex-col items-center justify-center gap-1">
-                                                    <span className="text-sm font-medium text-zinc-200 tabular-nums">
-                                                        {row.LINES_PICKED} <span className="text-[10px] text-zinc-500 uppercase ml-0.5">lines</span>
-                                                    </span>
-                                                    <div className="w-8 h-px bg-zinc-800/50"></div>
-                                                    <span className="text-xs font-medium text-zinc-400 tabular-nums">
-                                                        {row.ITEMS_PICKED} <span className="text-[9px] uppercase">units</span>
-                                                    </span>
-                                                </div>
+                                            <TableCell className="py-4 text-center">
+                                                <span className="text-sm font-medium text-zinc-200">{row.BOXES_PACKED} <span className="text-[10px] text-zinc-500 uppercase ml-0.5">boxes</span></span>
                                             </TableCell>
                                             <TableCell className="py-4 text-right">
-                                                <span className="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 text-xs font-mono font-medium text-zinc-400 bg-zinc-800/30 rounded-md border border-zinc-800/50">
-                                                    {row.RATIO}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="py-4 text-right">
-                                                <span className="text-sm font-medium text-zinc-300 tabular-nums flex items-center justify-end gap-1.5">
-                                                    <Clock className="w-3.5 h-3.5 text-zinc-500" />
-                                                    {row.EFFORT}h
-                                                </span>
+                                                <span className="text-sm font-medium text-zinc-300 flex items-center justify-end gap-1.5"><Clock className="w-3.5 h-3.5 text-zinc-500" />{row.EFFORT}h</span>
                                             </TableCell>
                                             <TableCell className="py-4 pr-6 text-right">
                                                 <div className="flex justify-end pr-2">
-                                                    <span className={cn(
-                                                        "inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold tabular-nums",
-                                                        getPerformanceBg(row.PRODUCTIVITY, row.FLOOR)
-                                                    )}>
+                                                    <span className={cn("inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold", getPerformanceBg(row.PRODUCTIVITY, row.FLOOR))}>
                                                         {row.PRODUCTIVITY}
                                                     </span>
                                                 </div>
@@ -563,39 +463,26 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                                         </motion.tr>
                                     ))
                                 ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="h-40 text-center border-none">
-                                            <div className="flex flex-col items-center justify-center gap-2 text-zinc-500">
-                                                <Search className="w-8 h-8 opacity-20 mb-2" />
-                                                <p className="text-sm font-medium">No operators found matching the criteria.</p>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
+                                    <TableRow><TableCell colSpan={4} className="h-40 text-center border-none">No operators found</TableCell></TableRow>
                                 )}
                             </AnimatePresence>
                         </TableBody>
                     </Table>
                 </div>
 
-                {/* Cascade View Modal */}
                 <Dialog open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
-                    <DialogContent className="max-w-5xl bg-[#09090b] border-zinc-800/60 shadow-2xl p-0 overflow-hidden sm:rounded-2xl">
+                    <DialogContent className="max-w-5xl bg-[#09090b] border-zinc-800/60 p-0 overflow-hidden sm:rounded-2xl shadow-2xl">
                         <DialogHeader className="p-6 pb-0">
                             <div className="flex items-center gap-4 mb-2">
-                                <div className="p-2 sm:p-3 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20">
-                                    <User className="w-6 h-6 sm:w-8 sm:h-8" />
-                                </div>
+                                <div className="p-2 sm:p-3 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20"><User className="w-6 h-6 sm:w-8 sm:h-8" /></div>
                                 <div className="text-left space-y-1">
-                                    <DialogTitle className="text-xl sm:text-2xl font-semibold text-zinc-100">
-                                        {userMappings[selectedUser || ""] || selectedUser}
-                                    </DialogTitle>
+                                    <DialogTitle className="text-xl sm:text-2xl font-semibold text-zinc-100">{userMappings[selectedUser || ""] || selectedUser}</DialogTitle>
                                     <DialogDescription className="text-xs sm:text-sm font-medium text-zinc-400">
                                         {selectedUser} • Hourly Breakdown • {activeFlow.replace('-', ' ')}
                                     </DialogDescription>
                                 </div>
                             </div>
                         </DialogHeader>
-
                         <div className="p-6 overflow-y-auto max-h-[60vh] space-y-3 custom-scrollbar">
                             {cascadeData.length > 0 ? (
                                 cascadeData.map((hourRow: any, i) => (
@@ -611,52 +498,30 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                                                 {String(hourRow.HOUR).padStart(2, '0')}:00
                                             </span>
                                         </div>
-
-                                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
+                                        <div className="flex-1 grid grid-cols-2 gap-8 w-full">
                                             <div className="space-y-1">
                                                 <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
-                                                    Lines
+                                                    Boxes
                                                 </span>
                                                 <span className="text-base sm:text-xl font-medium text-zinc-200 tabular-nums">
-                                                    {hourRow.LINES_PICKED}
+                                                    {hourRow.BOXES_PACKED}
                                                 </span>
                                             </div>
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
-                                                    Units
-                                                </span>
-                                                <span className="text-base sm:text-xl font-medium text-zinc-300 tabular-nums">
-                                                    {hourRow.ITEMS_PICKED}
-                                                </span>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
-                                                    Ratio
-                                                </span>
-                                                <span className="text-sm font-mono font-medium text-zinc-400 tabular-nums bg-zinc-950/50 px-2 py-0.5 rounded border border-zinc-900 w-fit mt-1 block">
-                                                    {hourRow.RATIO}
-                                                </span>
-                                            </div>
-                                            <div className="space-y-1 sm:text-right">
+                                            <div className="space-y-1 text-right">
                                                 <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider justify-end block">
                                                     Performance
                                                 </span>
-                                                <span className={cn(
-                                                    "text-lg sm:text-xl font-bold tabular-nums block mt-1",
-                                                    getPerformanceText(hourRow.PRODUCTIVITY, hourRow.FLOOR)
-                                                )}>
+                                                <span className={cn("text-lg sm:text-xl font-bold block mt-1", getPerformanceText(hourRow.PRODUCTIVITY, hourRow.FLOOR))}>
                                                     {hourRow.PRODUCTIVITY}
                                                 </span>
                                             </div>
                                         </div>
                                     </motion.div>
                                 ))
-                            ) : (
-                                <div className="py-12 text-center text-zinc-500 border border-dashed border-zinc-800/50 rounded-xl bg-zinc-900/10">
-                                    <Clock className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                                    <p className="text-sm font-medium">No hourly data available for this operator.</p>
-                                </div>
-                            )}
+                            ) : (<div className="py-12 text-center text-zinc-500 border border-dashed border-zinc-800/50 rounded-xl bg-zinc-900/10">
+                                <Clock className="w-8 h-8 mx-auto mb-3 opacity-20" />
+                                <p className="text-sm font-medium">No hourly data available for this operator.</p>
+                            </div>)}
                         </div>
                     </DialogContent>
                 </Dialog>

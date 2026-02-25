@@ -6,14 +6,19 @@ import Papa from 'papaparse';
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type'); // 'ms' or 'cvns'
+    const activity = searchParams.get('activity') || 'picking'; // 'picking' or 'packing'
 
     if (!type || !['ms', 'cvns'].includes(type)) {
         return NextResponse.json({ success: false, message: 'Invalid or missing type parameter' }, { status: 400 });
     }
 
+    if (!['picking', 'packing'].includes(activity)) {
+        return NextResponse.json({ success: false, message: 'Invalid activity parameter' }, { status: 400 });
+    }
+
     const scriptDir = path.join(process.cwd(), '..', 'script', 'output');
-    const dailyFile = path.join(scriptDir, `${type}_daily_stats.csv`);
-    const hourlyFile = path.join(scriptDir, `${type}_hourly_stats.csv`);
+    const dailyFile = path.join(scriptDir, `${type}_${activity}_daily_stats.csv`);
+    const hourlyFile = path.join(scriptDir, `${type}_${activity}_hourly_stats.csv`);
 
     try {
         const dailyData = [];

@@ -1,21 +1,25 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: "../public/fonts/Geist/Geist-VariableFont_wght.ttf",
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  weight: "100 900",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "../public/fonts/Geist_Mono/GeistMono-VariableFont_wght.ttf",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: "100 900",
 });
 
 export const metadata = {
   title: "Medtronic CVNS Dashboard",
   description: "Internal dashboard for monitoring script operations",
 };
+
+import { Sidebar } from "@/components/Sidebar";
 
 export default function RootLayout({
   children,
@@ -25,9 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[#09090b] text-zinc-100 flex overflow-hidden`}
       >
-        {children}
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative h-screen">
+          {children}
+        </main>
         <Toaster theme="dark" />
       </body>
     </html>

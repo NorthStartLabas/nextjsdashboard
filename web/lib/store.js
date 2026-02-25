@@ -14,7 +14,9 @@ export function getStore() {
                 cvns_B: { emerald: 100, blue: 60, orange: 40, red: 0 },
                 ms_A: { emerald: 100, blue: 60, orange: 40, red: 0 },
                 ms_B: { emerald: 100, blue: 60, orange: 40, red: 0 }
-            }
+            },
+            userMappings: {},
+            blacklist: []
         };
         fs.mkdirSync(path.dirname(storePath), { recursive: true });
         fs.writeFileSync(storePath, JSON.stringify(initialData, null, 2));
@@ -31,8 +33,12 @@ export function getStore() {
             ms_A: { emerald: 100, blue: 60, orange: 40, red: 0 },
             ms_B: { emerald: 100, blue: 60, orange: 40, red: 0 }
         };
-        saveStore(parsed);
     }
+
+    if (!parsed.userMappings) parsed.userMappings = {};
+    if (!parsed.blacklist) parsed.blacklist = [];
+
+    saveStore(parsed);
     return parsed;
 }
 

@@ -1,6 +1,7 @@
 import os
 import argparse
 import pandas as pd
+import json
 from datetime import datetime
 import snowflake.connector
 from dotenv import load_dotenv
@@ -35,10 +36,379 @@ def main():
 
     cur = conn.cursor()
 
+    # --- SHARED ROUTE MAPPING ---
+    routes_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'routes.csv')
+    try:
+        df_route_mapping = pd.read_csv(routes_csv_path)
+        route_to_flow = dict(zip(df_route_mapping['ROUTE'], df_route_mapping['FLOW']))
+        b_flow_routes = df_route_mapping[df_route_mapping['FLOW'] == 'B-flow']['ROUTE'].unique()
+    except FileNotFoundError:
+        print(f"Warning: routes.csv not found at {routes_csv_path}.")
+        route_to_flow = {}
+        b_flow_routes = []
+
+    # --- B-FLOW DELIVERY EXTRACTION (FOR DASHBOARD) ---
+    actual_today = datetime.today().strftime('%Y-%m-%d')
+    if len(b_flow_routes) > 0:
+        b_routes_str = ", ".join([f"'{r}'" for r in b_flow_routes])
+        vstel_list = "'1NLA', '2NLA', '3NLA', '4NLA'"
+        
+        scenarios = [
+            {"name": "today", "sql_cond": f"= '{actual_today}'", "suffix": ""},
+            {"name": "backlog", "sql_cond": f"< '{actual_today}'", "suffix": "_backlog"},
+            {"name": "future", "sql_cond": f"> '{actual_today}'", "suffix": "_future"}
+        ]
+        
+        for scenario in scenarios:
+            print(f"Processing B-FLOW {scenario['name']} deliveries (WADAT {scenario['sql_cond']})...")
+            
+            likp_query = f"""
+            SELECT LGNUM, LPRIO, WAUHR, VBELN
+            FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_LIKP
+            WHERE ROUTE IN ({b_routes_str})
+              AND WADAT {scenario['sql_cond']}
+              AND WADAT_IST IS NULL
+              AND (
+                (LGNUM = '266' AND VSTEL IN ({vstel_list}))
+                OR (LGNUM = '245')
+              )
+            """
+            try:
+                cur.execute(likp_query)
+                rows_likp = cur.fetchall()
+                df_likp_all = pd.DataFrame(rows_likp, columns=['LGNUM', 'LPRIO', 'WAUHR', 'VBELN'])
+                
+                # --- CLOSED TODAY EXTRACTION (NEW) ---
+                df_closed_all = pd.DataFrame()
+                df_ltap_closed_all = pd.DataFrame()
+                df_hu_closed_all = pd.DataFrame()
+
+                if scenario['name'] == 'today':
+                    print("Fetching deliveries closed (PGI'd) today...")
+                    closed_query = f"""
+                    SELECT LGNUM, LPRIO, WAUHR, VBELN
+                    FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_LIKP
+                    WHERE ROUTE IN ({b_routes_str})
+                      AND WADAT_IST = '{actual_today}'
+                      AND (
+                        (LGNUM = '266' AND VSTEL IN ({vstel_list}))
+                        OR (LGNUM = '245')
+                      )
+                    """
+                    cur.execute(closed_query)
+                    df_closed_all = pd.DataFrame(cur.fetchall(), columns=['LGNUM', 'LPRIO', 'WAUHR', 'VBELN'])
+                    
+                    if not df_closed_all.empty:
+                        closed_vbelns = df_closed_all['VBELN'].unique()
+                        c_chunks = [closed_vbelns[i:i + 1000] for i in range(0, len(closed_vbelns), 1000)]
+                        
+                        ltap_c_rows = []
+                        hu_c_rows = []
+                        ltap_cols = ['LGNUM', 'VBELN', 'VLPLA', 'VLTYP', 'NLPLA', 'QDATU', 'KOBER', 'UMREZ', 'BRGEW', 'VOLUM']
+                        
+                        for chunk in c_chunks:
+                            c_str = ", ".join([f"'{v}'" for v in chunk])
+                            # LTAP for closed
+                            cur.execute(f"SELECT {', '.join(ltap_cols)} FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_LTAP WHERE VBELN IN ({c_str}) AND NLPLA IS NOT NULL AND VBELN = NLPLA AND LGNUM IN ('245', '266')")
+                            ltap_c_rows.extend(cur.fetchall())
+                            # HU for closed
+                            cur.execute(f"SELECT VBELN, EXIDV FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HU_TO_LINK WHERE VBELN IN ({c_str}) UNION SELECT VBELN, EXIDV FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HUTO_LNKHIS WHERE VBELN IN ({c_str})")
+                            hu_c_rows.extend(cur.fetchall())
+                        
+                        df_ltap_closed_all = pd.DataFrame(ltap_c_rows, columns=ltap_cols)
+                        df_hu_closed_all = pd.DataFrame(hu_c_rows, columns=['VBELN', 'EXIDV'])
+                        
+                        # Convert numeric
+                        for col in ['UMREZ', 'BRGEW', 'VOLUM']:
+                            df_ltap_closed_all[col] = pd.to_numeric(df_ltap_closed_all[col], errors='coerce').fillna(0)
+                        
+                        # Strip zeros
+                        df_closed_all['VBELN'] = df_closed_all['VBELN'].astype(str).str.strip().str.lstrip('0')
+                        df_ltap_closed_all['VBELN'] = df_ltap_closed_all['VBELN'].astype(str).str.strip().str.lstrip('0')
+                        df_hu_closed_all['VBELN'] = df_hu_closed_all['VBELN'].astype(str).str.strip().str.lstrip('0')
+
+                if not df_likp_all.empty or not df_closed_all.empty:
+                    # --- LTAP EXTRACTION FOR THESE VBELNs ---
+                    unique_vbeln_list = df_likp_all['VBELN'].unique()
+                    vbeln_chunks = [unique_vbeln_list[i:i + 1000] for i in range(0, len(unique_vbeln_list), 1000)]
+                    
+                    ltap_dashboard_rows = []
+                    ltap_cols = ['LGNUM', 'VBELN', 'VLPLA', 'VLTYP', 'NLPLA', 'QDATU', 'KOBER', 'UMREZ', 'BRGEW', 'VOLUM']
+                    
+                    for chunk in vbeln_chunks:
+                        chunk_str = ", ".join([f"'{v}'" for v in chunk])
+                        detail_query = f"""
+                        SELECT {', '.join(ltap_cols)}
+                        FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_LTAP
+                        WHERE VBELN IN ({chunk_str})
+                          AND NLPLA IS NOT NULL
+                          AND VBELN = NLPLA
+                          AND LGNUM IN ('245', '266')
+                        """
+                        cur.execute(detail_query)
+                        ltap_dashboard_rows.extend(cur.fetchall())
+                    
+                    df_ltap_dash = pd.DataFrame(ltap_dashboard_rows, columns=ltap_cols)
+
+                    # --- HU EXTRACTION FOR THESE VBELNs ---
+                    hu_dashboard_rows = []
+                    for chunk in vbeln_chunks:
+                        chunk_str = ", ".join([f"'{v}'" for v in chunk])
+                        hu_query = f"""
+                        SELECT VBELN, EXIDV
+                        FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HU_TO_LINK
+                        WHERE VBELN IN ({chunk_str})
+                        UNION
+                        SELECT VBELN, EXIDV
+                        FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HUTO_LNKHIS
+                        WHERE VBELN IN ({chunk_str})
+                        """
+                        cur.execute(hu_query)
+                        hu_dashboard_rows.extend(cur.fetchall())
+                    df_hu_dash = pd.DataFrame(hu_dashboard_rows, columns=['VBELN', 'EXIDV'])
+                    df_hu_dash['VBELN'] = df_hu_dash['VBELN'].astype(str).str.strip().str.lstrip('0')
+                    
+                    # Convert numeric columns
+                    for col in ['UMREZ', 'BRGEW', 'VOLUM']:
+                        df_ltap_dash[col] = pd.to_numeric(df_ltap_dash[col], errors='coerce').fillna(0)
+
+                    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+                    os.makedirs(output_dir, exist_ok=True)
+                    
+                    suffix = scenario['suffix']
+                    dept_mapping = {
+                        '245': f'dashboard_data_ms{suffix}.json', 
+                        '266': f'dashboard_data_cvns{suffix}.json'
+                    }
+                    
+                    for lgnum, filename in dept_mapping.items():
+                        df_likp_dept = df_likp_all[df_likp_all['LGNUM'] == lgnum]
+                        df_ltap_dept = df_ltap_dash[df_ltap_dash['LGNUM'] == lgnum].copy()
+                        df_hu_dept = df_hu_dash[df_hu_dash['VBELN'].isin(df_likp_dept['VBELN'])].copy()
+                        
+                        # Apply specific filters
+                        if lgnum == '266': # CVNS
+                            cvns_starts = ['L', 'F', 'X', 'N', 'O', 'Y', 'W']
+                            cvns_not_starts = ['YES', 'NO', 'LONGGOODS', 'NCS', 'OSO']
+                            def filter_cvns_local(row):
+                                v = str(row['VLPLA']) if row['VLPLA'] else ""
+                                return any(v.startswith(s) for s in cvns_starts) and not any(v.startswith(s) for s in cvns_not_starts)
+                            df_ltap_dept = df_ltap_dept[df_ltap_dept.apply(filter_cvns_local, axis=1)]
+                        else: # MS (245)
+                            ms_starts = ['B', 'C', 'D', 'V', 'E']
+                            def filter_ms_local(row):
+                                v = str(row['VLPLA']) if row['VLPLA'] else ""
+                                return any(v.startswith(s) for s in ms_starts) and row['VLTYP'] != 'REP'
+                            df_ltap_dept = df_ltap_dept[df_ltap_dept.apply(filter_ms_local, axis=1)]
+
+                        # Metrics helper
+                        def get_metrics_local(df):
+                            picked = df[df['QDATU'].notnull()]
+                            not_picked = df[df['QDATU'].isnull()]
+                            def agg(d):
+                                return {
+                                    "lines": int(len(d)),
+                                    "items": int(d['UMREZ'].sum()),
+                                    "kg": round(float(d['BRGEW'].sum()), 2),
+                                    "vol": round(float(d['VOLUM'].sum()), 2)
+                                }
+                            return {
+                                "total": agg(df),
+                                "picked": agg(picked),
+                                "not_picked": agg(not_picked)
+                            }
+
+                        # Ensure VBELN is string and stripped of leading zeros for consistent mapping
+                        df_ltap_dept['VBELN'] = df_ltap_dept['VBELN'].astype(str).str.strip().str.lstrip('0')
+                        df_likp_dept['VBELN'] = df_likp_dept['VBELN'].astype(str).str.strip().str.lstrip('0')
+                        df_hu_dept['VBELN'] = df_hu_dept['VBELN'].astype(str).str.strip().str.lstrip('0')
+
+                        # Merge LTAP with LIKP to get WAUHR/LPRIO context for metrics
+                        df_ltap_merged = pd.merge(
+                            df_ltap_dept, 
+                            df_likp_dept[['VBELN', 'LPRIO', 'WAUHR']], 
+                            on='VBELN', 
+                            how='left'
+                        )
+                        
+                        # Merge HU with LIKP
+                        df_hu_merged = pd.merge(
+                            df_hu_dept,
+                            df_likp_dept[['VBELN', 'LPRIO', 'WAUHR']],
+                            on='VBELN',
+                            how='left'
+                        )
+                        
+                        # Calculate picking status per VBELN (delivery level)
+                        # We use this as a proxy for HU picking status if item-level mapping isn't clear
+                        vbeln_picking_status = df_ltap_dept.groupby('VBELN')['QDATU'].apply(lambda x: x.notnull().all()).to_dict()
+                        df_hu_merged['IS_PICKED'] = df_hu_merged['VBELN'].map(vbeln_picking_status).fillna(False)
+
+                        # priority count from LTAP (Lines instead of Deliveries)
+                        # Normalize LPRIO for consistent grouping
+                        df_ltap_merged['LPRIO_NORM'] = df_ltap_merged['LPRIO'].astype(str).str.lstrip('0')
+                        p_line_counts = df_ltap_merged['LPRIO_NORM'].value_counts().sort_index().to_dict()
+                        
+                        # Enhanced Cutoff metrics
+                        cutoff_groups = df_likp_dept.groupby('WAUHR')
+                        cutoff_details = {}
+                        for wauhr, group in cutoff_groups:
+                            ltap_group = df_ltap_merged[df_ltap_merged['WAUHR'] == wauhr]
+                            hu_group = df_hu_merged[df_hu_merged['WAUHR'] == wauhr] if not df_hu_merged.empty else pd.DataFrame()
+                            
+                            # Use normalized LPRIO for inner metrics as well
+                            ltap_group['LPRIO_NORM'] = ltap_group['LPRIO'].astype(str).str.lstrip('0')
+                            group['LPRIO_NORM'] = group['LPRIO'].astype(str).str.lstrip('0')
+                            
+                            cutoff_details[str(wauhr)] = {
+                                "total_deliveries": int(len(group)),
+                                "dp10_deliveries": int(len(group[group['LPRIO_NORM'] == '10'])),
+                                "total_lines": int(len(ltap_group)),
+                                "picked_lines": int(len(ltap_group[ltap_group['QDATU'].notnull()])),
+                                "dp10_lines": int(len(ltap_group[ltap_group['LPRIO_NORM'] == '10'])),
+                                "total_hus": int(len(hu_group)),
+                                "picked_hus": int(len(hu_group[hu_group['IS_PICKED'] == True])) if not hu_group.empty else 0
+                            }
+                        
+                        # HU Summary Stats
+                        total_hus = len(df_hu_merged)
+                        picked_hus = len(df_hu_merged[df_hu_merged['IS_PICKED'] == True])
+                        total_lines = len(df_ltap_dept)
+                        total_items = df_ltap_dept['UMREZ'].sum()
+                        
+                        dashboard_json = {
+                            "open_deliveries": len(df_likp_dept),
+                            "open_hus": total_hus,
+                            "hu_summary": {
+                                "total": total_hus,
+                                "picked": picked_hus,
+                                "not_picked": total_hus - picked_hus,
+                                "avg_lines_per_hu": round(total_lines / total_hus, 2) if total_hus > 0 else 0,
+                                "avg_items_per_hu": round(total_items / total_hus, 2) if total_hus > 0 else 0
+                            },
+                            "priorities": {str(k): int(v) for k, v in p_line_counts.items()},
+                            "priority_hus": df_hu_merged['LPRIO'].astype(str).str.lstrip('0').value_counts().sort_index().to_dict() if not df_hu_merged.empty else {},
+                            "cutoffs": cutoff_details,
+                            "summary": get_metrics_local(df_ltap_dept),
+                            "vltyp_distribution": {},
+                            "kober_distribution": {}
+                        }
+                        
+                        for v_type in df_ltap_dept['VLTYP'].unique():
+                            dashboard_json["vltyp_distribution"][str(v_type)] = get_metrics_local(df_ltap_dept[df_ltap_dept['VLTYP'] == v_type])
+                        for k_val in df_ltap_dept['KOBER'].unique():
+                            dashboard_json["kober_distribution"][str(k_val)] = get_metrics_local(df_ltap_dept[df_ltap_dept['KOBER'] == k_val])
+                        
+                        # Add Closed Today metrics (only for Today scenario)
+                        if scenario['name'] == 'today':
+                            df_c_dept = df_closed_all[df_closed_all['LGNUM'] == lgnum]
+                            df_ltap_c_dept = df_ltap_closed_all[df_ltap_closed_all['LGNUM'] == lgnum]
+                            df_hu_c_dept = df_hu_closed_all[df_hu_closed_all['VBELN'].isin(df_c_dept['VBELN'])]
+                            
+                            # Additional filters for closed LTAP (Consistency with open lines)
+                            if lgnum == '266':
+                                df_ltap_c_dept = df_ltap_c_dept[df_ltap_c_dept.apply(filter_cvns_local, axis=1)]
+                            else:
+                                df_ltap_c_dept = df_ltap_c_dept[df_ltap_c_dept.apply(filter_ms_local, axis=1)]
+
+                            dashboard_json["closed_today"] = {
+                                "deliveries": int(len(df_c_dept)),
+                                "hus": int(len(df_hu_c_dept)),
+                                "lines": int(len(df_ltap_c_dept)),
+                                "items": int(df_ltap_c_dept['UMREZ'].sum()),
+                                "vol": round(float(df_ltap_c_dept['VOLUM'].sum() / 1000000), 3), # in M3
+                                "kg": round(float(df_ltap_c_dept['BRGEW'].sum()), 2)
+                            }
+
+                        if lgnum == '266':
+                            dashboard_json["floors"] = {}
+                            df_ltap_merged['FLOOR'] = df_ltap_merged['VLTYP'].map(lambda x: FLOOR_MAPPING.get(str(x), 'unknown_floor'))
+                            for floor in df_ltap_merged['FLOOR'].unique():
+                                if floor != 'unknown_floor':
+                                    floor_df = df_ltap_merged[df_ltap_merged['FLOOR'] == floor]
+                                    floor_metrics = get_metrics_local(floor_df)
+                                    
+                                    # Normalize LPRIO for comparison (handling potential leading zeros)
+                                    floor_df['LPRIO_NORM'] = floor_df['LPRIO'].astype(str).str.lstrip('0')
+                                    
+                                    # Add extra metrics requested for Floor Operations
+                                    floor_metrics["total"]["deliveries"] = int(floor_df['VBELN'].nunique())
+                                    floor_metrics["total"]["dp10_deliveries"] = int(floor_df[floor_df['LPRIO_NORM'] == '10']['VBELN'].nunique())
+                                    floor_metrics["total"]["dp10_lines"] = int(len(floor_df[floor_df['LPRIO_NORM'] == '10']))
+                                    
+                                    # HU metrics for floor
+                                    floor_vbelns = floor_df['VBELN'].unique()
+                                    floor_hu = df_hu_merged[df_hu_merged['VBELN'].isin(floor_vbelns)]
+                                    floor_metrics["hu_summary"] = {
+                                        "total": int(len(floor_hu)),
+                                        "picked": int(len(floor_hu[floor_hu['IS_PICKED'] == True])),
+                                        "not_picked": int(len(floor_hu[floor_hu['IS_PICKED'] == False]))
+                                    }
+                                    dashboard_json["floors"][floor] = floor_metrics
+
+                        with open(os.path.join(output_dir, filename), 'w') as f:
+                            json.dump(dashboard_json, f, indent=4)
+                        print(f"Generated {filename}")
+
+                        # --- DETAILED LINES EXPORT ---
+                        lines_filename = filename.replace('dashboard_data_', 'dashboard_lines_')
+                        export_cols = ['VBELN', 'LPRIO', 'WAUHR', 'VLPLA', 'VLTYP', 'KOBER', 'UMREZ', 'BRGEW', 'VOLUM']
+                        if 'FLOOR' in df_ltap_merged.columns:
+                            export_cols.append('FLOOR')
+                        
+                        # Filter to columns that exist
+                        existing_cols = [c for c in export_cols if c in df_ltap_merged.columns]
+                        df_lines_export = df_ltap_merged[existing_cols].copy()
+                        
+                        # Ensure string types for joining/export
+                        df_lines_export['VBELN'] = df_lines_export['VBELN'].astype(str).str.strip().str.lstrip('0')
+                        df_lines_export['LPRIO'] = df_lines_export['LPRIO'].astype(str)
+                        df_lines_export['WAUHR'] = df_lines_export['WAUHR'].astype(str)
+                        
+                        # Save specifically for the detailed view modal
+                        df_lines_export.to_json(os.path.join(output_dir, lines_filename), orient='records', indent=4)
+                        print(f"Generated {lines_filename}")
+
+                        # --- DETAILED HU EXPORT ---
+                        hu_export_filename = filename.replace('dashboard_data_', 'dashboard_hu_')
+                        # Calculate per-delivery stats to assign proportionally to HUs
+                        deliv_stats = df_ltap_dept.groupby('VBELN').agg({
+                            'UMREZ': 'sum',
+                            'VBELN': 'count' # Line count
+                        }).rename(columns={'VBELN': 'LINES_COUNT', 'UMREZ': 'ITEMS_COUNT'}).reset_index()
+                        
+                        # Get HU count per delivery
+                        hu_counts = df_hu_merged.groupby('VBELN').size().reset_index(name='HU_PER_DELIV')
+                        
+                        # Merge stats
+                        hu_stats_merged = pd.merge(df_hu_merged, deliv_stats, on='VBELN', how='left')
+                        hu_stats_merged = pd.merge(hu_stats_merged, hu_counts, on='VBELN', how='left')
+                        
+                        # Calculate proportional counts
+                        hu_stats_merged['LINES_PER_HU'] = (hu_stats_merged['LINES_COUNT'] / hu_stats_merged['HU_PER_DELIV']).round(2)
+                        hu_stats_merged['ITEMS_PER_HU'] = (hu_stats_merged['ITEMS_COUNT'] / hu_stats_merged['HU_PER_DELIV']).round(2)
+                        
+                        # Prepare export columns
+                        hu_export_cols = ['EXIDV', 'VBELN', 'LPRIO', 'WAUHR', 'IS_PICKED', 'LINES_PER_HU', 'ITEMS_PER_HU']
+                        df_hu_export = hu_stats_merged[hu_export_cols].copy()
+                        df_hu_export['LPRIO'] = df_hu_export['LPRIO'].astype(str)
+                        df_hu_export['WAUHR'] = df_hu_export['WAUHR'].astype(str)
+                        
+                        df_hu_export.to_json(os.path.join(output_dir, hu_export_filename), orient='records', indent=4)
+                        print(f"Generated {hu_export_filename}")
+                else:
+                    print(f"No B-FLOW {scenario['name']} deliveries found.")
+            except Exception as ex:
+                print(f"B-FLOW {scenario['name']} Extraction Error: {ex}")
+    else:
+        print("No B-flow routes found in routes.csv. Skipping dashboard JSON generation.")
+
+
+    # --- PICKING EXTRACTION ---
     columns = ['MATNR', 'CHARG', 'UMREZ', 'QDATU', 'QZEIT', 'QNAME', 'BRGEW', 'GEWEI', 'VLTYP', 'VLPLA', 'NLPLA', 'VBELN', 'LGNUM']
     cols_str = ", ".join(columns)
 
-    print("Fetching base data from SDS_CP_LTAP...")
+    print(f"Fetching base picking data from SDS_CP_LTAP for {target_date}...")
     
     cvns_vlpla_starts = ['L', 'F', 'X', 'N', 'O', 'Y', 'W']
     cvns_vlpla_not_starts = ['YES', 'NO', 'LONGGOODS', 'NCS', 'OSO']
@@ -60,8 +430,28 @@ def main():
     df_ltap = pd.DataFrame(rows, columns=columns)
 
     if df_ltap.empty:
-        print(f"No data found in SDS_CP_LTAP for date {target_date}.")
-        return
+        print(f"No picking data found in SDS_CP_LTAP for date {target_date}.")
+        df_ltap_filtered = pd.DataFrame(columns=columns)
+    else:
+        def filter_cvns(row):
+            vlpla = str(row['VLPLA']) if row['VLPLA'] else ""
+            if not any(vlpla.startswith(s) for s in cvns_vlpla_starts):
+                return False
+            if any(vlpla.startswith(s) for s in cvns_vlpla_not_starts):
+                return False
+            return True
+
+        def filter_ms(row):
+            vlpla = str(row['VLPLA']) if row['VLPLA'] else ""
+            return any(vlpla.startswith(s) for s in ms_vlpla_starts)
+            
+        df_cvns = df_ltap[df_ltap['LGNUM'] == '266']
+        df_cvns = df_cvns[df_cvns.apply(filter_cvns, axis=1)]
+
+        df_ms = df_ltap[df_ltap['LGNUM'] == '245']
+        df_ms = df_ms[df_ms.apply(filter_ms, axis=1)]
+
+        df_ltap_filtered = pd.concat([df_ms, df_cvns])
         
     def filter_cvns(row):
         vlpla = str(row['VLPLA']) if row['VLPLA'] else ""
@@ -83,47 +473,106 @@ def main():
 
     df_ltap_filtered = pd.concat([df_ms, df_cvns])
     if df_ltap_filtered.empty:
-        print("No valid rows remaining after VLPLA filtering.")
-        return
-
-    unique_vbeln = df_ltap_filtered['VBELN'].unique()
-    unique_vbeln_str = ", ".join([f"'{v}'" for v in unique_vbeln])
-    
-    print(f"Fetching route data for {len(unique_vbeln)} unique VBELN values...")
-
-    if len(unique_vbeln) > 0:
-        link_query = f"""
-        SELECT VBELN, ROUTE
-        FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HU_TO_LINK
-        WHERE VBELN IN ({unique_vbeln_str})
-        """
-        cur.execute(link_query)
-        df_link = pd.DataFrame(cur.fetchall(), columns=['VBELN', 'ROUTE'])
-
-        his_query = f"""
-        SELECT VBELN, ROUTE
-        FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HUTO_LNKHIS
-        WHERE VBELN IN ({unique_vbeln_str})
-        """
-        cur.execute(his_query)
-        df_his = pd.DataFrame(cur.fetchall(), columns=['VBELN', 'ROUTE'])
-
-        df_routes_db = pd.concat([df_link, df_his]).drop_duplicates(subset=['VBELN'])
-    else:
+        print("No valid picking rows remains after VLPLA filtering. Skipping picking stats.")
         df_routes_db = pd.DataFrame(columns=['VBELN', 'ROUTE'])
+    else:
+        unique_vbeln = df_ltap_filtered['VBELN'].unique()
+        unique_vbeln_str = ", ".join([f"'{v}'" for v in unique_vbeln])
+        
+        print(f"Fetching route data for {len(unique_vbeln)} unique VBELN values...")
+
+        if len(unique_vbeln) > 0:
+            link_query = f"""
+            SELECT VBELN, ROUTE
+            FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HU_TO_LINK
+            WHERE VBELN IN ({unique_vbeln_str})
+            """
+            cur.execute(link_query)
+            df_link = pd.DataFrame(cur.fetchall(), columns=['VBELN', 'ROUTE'])
+
+            his_query = f"""
+            SELECT VBELN, ROUTE
+            FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HUTO_LNKHIS
+            WHERE VBELN IN ({unique_vbeln_str})
+            """
+            cur.execute(his_query)
+            df_his = pd.DataFrame(cur.fetchall(), columns=['VBELN', 'ROUTE'])
+
+            df_routes_db = pd.concat([df_link, df_his]).drop_duplicates(subset=['VBELN'])
+        else:
+            df_routes_db = pd.DataFrame(columns=['VBELN', 'ROUTE'])
+
+    # --- PACKING EXTRACTION ---
+    target_dt_obj = datetime.strptime(target_date, '%Y-%m-%d')
+    start_dt_obj = target_dt_obj - pd.Timedelta(days=5)
+    
+    target_date_compact = target_date.replace('-', '') # E.g. 20260224
+    start_date_compact = start_dt_obj.strftime('%Y%m%d') # E.g. 20260219
+
+    print(f"Fetching packing data with 5-day lookback: {start_date_compact} to {target_date_compact}...")
+
+    # Join SDS_CP_CDHDR, SDS_CP_VEKP, and HU (link/his)
+    packing_query = f"""
+    WITH PACK_HEADERS AS (
+        SELECT OBJECTID, USERNAME, UDATE, UTIME
+        FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_CDHDR
+        WHERE UDATE >= '{start_date_compact}'
+          AND UDATE <= '{target_date_compact}'
+          AND OBJECTCLAS = 'HANDL_UNIT'
+          AND (TCODE = 'ZORF_BOX_CLOSING' OR USERNAME = 'WEBMREMOTEWS')
+    ),
+    PACK_EXIDV AS (
+        SELECT DISTINCT VENUM, EXIDV
+        FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_VEKP
+        WHERE VENUM IN (SELECT OBJECTID FROM PACK_HEADERS)
+    ),
+    HU_INFO AS (
+        SELECT EXIDV, LGNUM, VLTYP, ROUTE FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HU_TO_LINK
+        UNION
+        SELECT EXIDV, LGNUM, VLTYP, ROUTE FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HUTO_LNKHIS
+    )
+    SELECT 
+        H.OBJECTID, H.USERNAME, H.UDATE, H.UTIME, 
+        I.LGNUM, I.VLTYP, I.ROUTE
+    FROM PACK_HEADERS H
+    JOIN PACK_EXIDV E ON H.OBJECTID = E.VENUM
+    JOIN HU_INFO I ON E.EXIDV = I.EXIDV
+    WHERE I.LGNUM IN ('245', '266')
+      AND (H.USERNAME != 'WEBMREMOTEWS' OR I.LGNUM = '245')
+    """
+    
+    try:
+        cur.execute(packing_query)
+        rows_packing = cur.fetchall()
+        df_packing_raw = pd.DataFrame(rows_packing, columns=['OBJECTID', 'USERNAME', 'UDATE', 'UTIME', 'LGNUM', 'VLTYP', 'ROUTE'])
+        print(f"Found {len(df_packing_raw)} raw packing rows in history window.")
+        
+        if not df_packing_raw.empty:
+            # 1. Ensure UTIME is padded (6 chars) so sorting is chronological
+            df_packing_raw['UTIME'] = df_packing_raw['UTIME'].astype(str).str.zfill(6)
+            
+            # 2. Sort by Date and Time
+            df_packing_raw = df_packing_raw.sort_values(['UDATE', 'UTIME'], ascending=True)
+            
+            # 3. For each OBJECTID, only keep the FIRST (earliest) record
+            df_packing_unique = df_packing_raw.drop_duplicates(subset=['OBJECTID'], keep='first')
+            
+            # 4. Attribution: Only count for today if the EARLIEST hit was actually TODAY
+            df_packing = df_packing_unique[df_packing_unique['UDATE'] == target_date_compact].copy()
+            print(f"Attributed {len(df_packing)} boxes to today's activity.")
+        else:
+            df_packing = pd.DataFrame(columns=['OBJECTID', 'USERNAME', 'UDATE', 'UTIME', 'LGNUM', 'VLTYP', 'ROUTE'])
+
+    except Exception as e:
+        print(f"Packing Query Error: {e}")
+        df_packing = pd.DataFrame(columns=['OBJECTID', 'USERNAME', 'UDATE', 'UTIME', 'LGNUM', 'VLTYP', 'ROUTE'])
 
     cur.close()
     conn.close()
 
     print("Transforming data...")
-    routes_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'routes.csv')
-    try:
-        df_route_mapping = pd.read_csv(routes_csv_path)
-        route_to_flow = dict(zip(df_route_mapping['ROUTE'], df_route_mapping['FLOW']))
-    except FileNotFoundError:
-        print(f"Warning: routes.csv not found at {routes_csv_path}. Flows will be unknown.")
-        route_to_flow = {}
 
+    # --- PICKING TRANSFORMATION ---
     df_merged = pd.merge(df_ltap_filtered, df_routes_db, on='VBELN', how='left')
 
     def map_flow(route):
@@ -144,15 +593,12 @@ def main():
                 return -1
                 
             if ':' in val_str:
-                # E.g. "14:32:00" or "0 days 14:32:00"
                 time_part = val_str.split()[-1]
                 return int(time_part.split(':')[0])
                 
             if '.' in val_str:
-                # E.g. 93000.0 -> remove decimal
                 val_str = val_str.split('.')[0]
                 
-            # zfill to 6 digits to handle 93000 -> 093000
             val_str = val_str.zfill(6)
             return int(val_str[:2])
         except Exception:
@@ -168,88 +614,130 @@ def main():
             return FLOOR_MAPPING.get(vltyp, 'unknown_floor')
 
     df_merged['FLOOR'] = df_merged.apply(map_floor, axis=1)
-
     df_merged['UMREZ'] = pd.to_numeric(df_merged['UMREZ'], errors='coerce').fillna(0)
 
+    # Filter out unknown_floor from picking
+    df_merged = df_merged[df_merged['FLOOR'] != 'unknown_floor'].copy()
+
+    # --- PACKING TRANSFORMATION ---
+    if not df_packing.empty:
+        df_packing['FLOW'] = df_packing['ROUTE'].apply(map_flow)
+        def adjust_hour(row):
+            h = extract_hour(row['UTIME'])
+            if h != -1 and row['USERNAME'] != 'WEBMREMOTEWS':
+                return (h + 1) % 24
+            return h
+
+        df_packing['HOUR'] = df_packing.apply(adjust_hour, axis=1)
+        
+        def map_floor_packing(row):
+            if row['LGNUM'] == '245': return 'ground_floor'
+            vltyp = str(row['VLTYP']) if row['VLTYP'] else ""
+            return FLOOR_MAPPING.get(vltyp, 'unknown_floor')
+            
+        df_packing['FLOOR'] = df_packing.apply(map_floor_packing, axis=1)
+        # Filter out unknown_floor from packing
+        df_packing = df_packing[df_packing['FLOOR'] != 'unknown_floor'].copy()
+        
+        # For packing, QNAME mapping
+        df_packing = df_packing.rename(columns={'USERNAME': 'QNAME', 'UDATE': 'QDATU'})
+    
     print("Calculating statistics...")
 
-    def calculate_stats(df, dept_flag):
-        if df.empty:
-            return pd.DataFrame(), pd.DataFrame()
+    def calculate_picking_stats(df):
+        if df.empty: return pd.DataFrame(), pd.DataFrame()
+        
+        # 1. Identify how many work contexts (Flow/Floor) each user worked in per hour
+        context_counts = df.groupby(['QNAME', 'QDATU', 'HOUR']).apply(
+            lambda x: x.groupby(['FLOW', 'FLOOR']).ngroups
+        ).to_dict()
 
         hourly_groups = df.groupby(['QNAME', 'QDATU', 'HOUR', 'FLOW', 'FLOOR'])
-
-        hourly_stats = []
+        rows = []
         for name, group in hourly_groups:
             qname, qdatu, hour, flow, floor = name
-            lines_picked = len(group)
-            items_picked = group['UMREZ'].sum()
-            ratio = round(items_picked / lines_picked, 2) if lines_picked > 0 else 0.0
+            lines = len(group)
+            items = group['UMREZ'].sum()
             
-            effort = BREAK_MAPPING.get(hour, 1.0)
-            productivity = round(lines_picked / effort, 2) if effort > 0 else 0.0
-
-            hourly_stats.append({
-                'QNAME': qname,
-                'QDATU': qdatu,
-                'HOUR': hour,
-                'FLOW': flow,
-                'FLOOR': floor,
-                'LINES_PICKED': lines_picked,
-                'ITEMS_PICKED': items_picked,
-                'RATIO': ratio,
-                'EFFORT': effort,
-                'PRODUCTIVITY': productivity
+            # 2. Distribute the hour's base effort equally across active contexts
+            base_effort = BREAK_MAPPING.get(hour, 1.0)
+            n_contexts = context_counts.get((qname, qdatu, hour), 1)
+            distributed_effort = base_effort / n_contexts
+            
+            rows.append({
+                'QNAME': qname, 'QDATU': qdatu, 'HOUR': hour, 'FLOW': flow, 'FLOOR': floor,
+                'LINES_PICKED': lines, 'ITEMS_PICKED': items, 
+                'RATIO': round(items/lines, 2) if lines > 0 else 0,
+                'EFFORT': round(distributed_effort, 2), 
+                'PRODUCTIVITY': round(lines/distributed_effort, 2) if distributed_effort > 0 else 0
             })
+        df_h = pd.DataFrame(rows)
+        df_d = df_h.groupby(['QNAME', 'QDATU', 'FLOW', 'FLOOR']).agg({
+            'LINES_PICKED': 'sum', 'ITEMS_PICKED': 'sum', 'EFFORT': 'sum'
+        }).reset_index()
+        df_d['EFFORT'] = df_d['EFFORT'].round(2)
+        df_d['RATIO'] = (df_d['ITEMS_PICKED'] / df_d['LINES_PICKED']).round(2)
+        df_d['PRODUCTIVITY'] = (df_d['LINES_PICKED'] / df_d['EFFORT']).round(2)
+        return df_h, df_d
 
-        df_hourly = pd.DataFrame(hourly_stats)
-
-        daily_groups = df_hourly.groupby(['QNAME', 'QDATU', 'FLOW', 'FLOOR'])
+    def calculate_packing_stats(df):
+        if df.empty: return pd.DataFrame(), pd.DataFrame()
         
-        daily_stats = []
-        for name, group in daily_groups:
-            qname, qdatu, flow, floor = name
-            total_lines = group['LINES_PICKED'].sum()
-            total_items = group['ITEMS_PICKED'].sum()
-            total_effort = group['EFFORT'].sum()
+        # 1. Identify context counts for packing
+        context_counts = df.groupby(['QNAME', 'QDATU', 'HOUR']).apply(
+            lambda x: x.groupby(['FLOW', 'FLOOR']).ngroups
+        ).to_dict()
+
+        hourly_groups = df.groupby(['QNAME', 'QDATU', 'HOUR', 'FLOW', 'FLOOR'])
+        rows = []
+        for name, group in hourly_groups:
+            qname, qdatu, hour, flow, floor = name
+            # Use nunique to count distinct boxes as requested
+            boxes = group['OBJECTID'].nunique()
             
-            daily_ratio = round(total_items / total_lines, 2) if total_lines > 0 else 0.0
-            daily_productivity = round(total_lines / total_effort, 2) if total_effort > 0 else 0.0
-
-            daily_stats.append({
-                'QNAME': qname,
-                'QDATU': qdatu,
-                'FLOW': flow,
-                'FLOOR': floor,
-                'LINES_PICKED': total_lines,
-                'ITEMS_PICKED': total_items,
-                'RATIO': daily_ratio,
-                'EFFORT': total_effort,
-                'PRODUCTIVITY': daily_productivity
+            # 2. Distribute effort
+            base_effort = BREAK_MAPPING.get(hour, 1.0)
+            n_contexts = context_counts.get((qname, qdatu, hour), 1)
+            distributed_effort = base_effort / n_contexts
+            
+            rows.append({
+                'QNAME': qname, 'QDATU': qdatu, 'HOUR': hour, 'FLOW': flow, 'FLOOR': floor,
+                'BOXES_PACKED': boxes, 'EFFORT': round(distributed_effort, 2), 
+                'PRODUCTIVITY': round(boxes/distributed_effort, 2) if distributed_effort > 0 else 0
             })
+        df_h = pd.DataFrame(rows)
+        df_d = df_h.groupby(['QNAME', 'QDATU', 'FLOW', 'FLOOR']).agg({
+            'BOXES_PACKED': 'sum', 'EFFORT': 'sum'
+        }).reset_index()
+        df_d['EFFORT'] = df_d['EFFORT'].round(2)
+        df_d['PRODUCTIVITY'] = (df_d['BOXES_PACKED'] / df_d['EFFORT']).round(2)
+        return df_h, df_d
 
-        df_daily = pd.DataFrame(daily_stats)
-
-        return df_hourly, df_daily
-
-    df_ms_final = df_merged[df_merged['LGNUM'] == '245']
-    df_cvns_final = df_merged[df_merged['LGNUM'] == '266']
-
-    ms_hourly, ms_daily = calculate_stats(df_ms_final, 'MS')
-    cvns_hourly, cvns_daily = calculate_stats(df_cvns_final, 'CVNS')
+    # Calculating
+    ms_picking_h, ms_picking_d = calculate_picking_stats(df_merged[df_merged['LGNUM'] == '245'])
+    cvns_picking_h, cvns_picking_d = calculate_picking_stats(df_merged[df_merged['LGNUM'] == '266'])
+    
+    ms_packing_h, ms_packing_d = calculate_packing_stats(df_packing[df_packing['LGNUM'] == '245'])
+    cvns_packing_h, cvns_packing_d = calculate_packing_stats(df_packing[df_packing['LGNUM'] == '266'])
 
     output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
     os.makedirs(output_dir, exist_ok=True)
 
-    if not ms_hourly.empty:
-        ms_hourly.to_csv(os.path.join(output_dir, 'ms_hourly_stats.csv'), index=False)
-        ms_daily.to_csv(os.path.join(output_dir, 'ms_daily_stats.csv'), index=False)
-        print("Generated MS stats.")
-    
-    if not cvns_hourly.empty:
-        cvns_hourly.to_csv(os.path.join(output_dir, 'cvns_hourly_stats.csv'), index=False)
-        cvns_daily.to_csv(os.path.join(output_dir, 'cvns_daily_stats.csv'), index=False)
-        print("Generated CVNS stats.")
+    output_mapping = {
+        'ms_picking_hourly_stats.csv': ms_picking_h,
+        'ms_picking_daily_stats.csv': ms_picking_d,
+        'cvns_picking_hourly_stats.csv': cvns_picking_h,
+        'cvns_picking_daily_stats.csv': cvns_picking_d,
+        'ms_packing_hourly_stats.csv': ms_packing_h,
+        'ms_packing_daily_stats.csv': ms_packing_d,
+        'cvns_packing_hourly_stats.csv': cvns_packing_h,
+        'cvns_packing_daily_stats.csv': cvns_packing_d
+    }
+
+    for filename, df in output_mapping.items():
+        if not df.empty:
+            df.to_csv(os.path.join(output_dir, filename), index=False)
+            print(f"Generated {filename}")
         
     print("Done!")
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Play, Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Activity, Plus, Trash2, Power, Settings2, Save } from "lucide-react";
+import { Play, Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Activity, Plus, Trash2, Power, Settings2, Save, Search, Terminal } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,12 @@ export default function DevDashboard() {
 
     const [dateParam, setDateParam] = useState<Date>();
     const [isExecuting, setIsExecuting] = useState(false);
+
+    // User management state
+    const [availableUsers, setAvailableUsers] = useState<string[]>([]);
+    const [userMappings, setUserMappings] = useState<Record<string, string>>({});
+    const [blacklist, setBlacklist] = useState<string[]>([]);
+    const [userSearch, setUserSearch] = useState("");
 
     // New Cron Form State
     const [newCronName, setNewCronName] = useState("");
@@ -54,11 +60,24 @@ export default function DevDashboard() {
         } catch (e) { }
     };
 
+    const fetchUsers = async () => {
+        try {
+            const res = await fetch("/api/users");
+            if (res.ok) {
+                const data = await res.json();
+                setAvailableUsers(data.availableUsers || []);
+                setUserMappings(data.userMappings || {});
+                setBlacklist(data.blacklist || []);
+            }
+        } catch (e) { }
+    };
+
     useEffect(() => {
         if (authenticated) {
             fetchStats();
             fetchCron();
             fetchThresholds();
+            fetchUsers();
             const interval = setInterval(() => {
                 fetchStats();
             }, 5000);
@@ -172,6 +191,40 @@ export default function DevDashboard() {
         }
     };
 
+    const handleSaveUsers = async () => {
+        try {
+            const res = await fetch("/api/users", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userMappings, blacklist })
+            });
+            if (res.ok) {
+                toast.success("User preferences saved!", {
+                    style: { background: "#18181b", borderColor: "#3f3f46", color: "#10b981" }
+                });
+            } else {
+                toast.error("Failed to save users.");
+            }
+        } catch (error) {
+            toast.error("Network error saving users.");
+        }
+    };
+
+    const toggleBlacklist = (username: string) => {
+        setBlacklist(prev =>
+            prev.includes(username)
+                ? prev.filter(u => u !== username)
+                : [...prev, username]
+        );
+    };
+
+    const updateUserMapping = (username: string, displayName: string) => {
+        setUserMappings(prev => ({
+            ...prev,
+            [username]: displayName
+        }));
+    };
+
     const updateSingleThreshold = (keyName: string, level: string, value: number) => {
         setThresholds((prev: any) => ({
             ...prev,
@@ -188,14 +241,14 @@ export default function DevDashboard() {
                 <Card className="w-full max-w-md bg-zinc-900/40 border-zinc-800/60 shadow-none rounded-2xl overflow-hidden">
                     <CardHeader className="space-y-1 border-b border-zinc-800/40 bg-zinc-900/20 pb-6">
                         <CardTitle className="text-2xl font-semibold tracking-tight text-zinc-100">System Authentication</CardTitle>
-                        <CardDescription className="text-zinc-400">Enter administrator password to access DEV panel</CardDescription>
+                        <CardDescription className="text-zinc-400">Enter administrator password to access developer panel</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6">
                         <form onSubmit={handleAuth} className="space-y-4">
                             <Input
                                 type="password"
                                 placeholder="Root Password"
-                                value={password}
+                                value={password ?? ""}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-zinc-700 h-11 text-zinc-200"
                             />
@@ -209,11 +262,30 @@ export default function DevDashboard() {
         );
     }
 
-    const configKeys = [
-        { id: "cvns_A", label: "CVNS A-Flow" },
-        { id: "cvns_B", label: "CVNS B-Flow" },
-        { id: "ms_A", label: "MS A-Flow" },
-        { id: "ms_B", label: "MS B-Flow" }
+    const configGroups = [
+        {
+            title: "CVNS B-Flow Picking",
+            keys: [
+                { id: "cvns_B_ground_floor", label: "Ground Floor" },
+                { id: "cvns_B_first_floor", label: "First Floor" },
+                { id: "cvns_B_second_floor", label: "Second Floor" }
+            ]
+        },
+        {
+            title: "CVNS B-Flow Packing",
+            keys: [
+                { id: "cvns_packing_B_ground_floor", label: "Ground Floor" },
+                { id: "cvns_packing_B_first_floor", label: "First Floor" },
+                { id: "cvns_packing_B_second_floor", label: "Second Floor" }
+            ]
+        },
+        {
+            title: "MS Outbound Picking",
+            keys: [
+                { id: "ms_A", label: "A-Flow" },
+                { id: "ms_B", label: "B-Flow" }
+            ]
+        }
     ];
 
     return (
@@ -224,6 +296,9 @@ export default function DevDashboard() {
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-4 border-b border-zinc-900/50">
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                                <Terminal className="w-6 h-6 text-blue-500" />
+                            </div>
                             <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">
                                 Dev Operations Center
                             </h1>
@@ -248,7 +323,7 @@ export default function DevDashboard() {
                     <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl">
                         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200">
                             <CardTitle className="text-sm font-medium">Server Uptime</CardTitle>
-                            <Activity className="h-4 w-4 text-zinc-500" />
+                            <Activity className="h-4 w-4 text-emerald-500" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-semibold">{stats?.uptime || '--'}</div>
@@ -259,7 +334,7 @@ export default function DevDashboard() {
                     <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl">
                         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200">
                             <CardTitle className="text-sm font-medium">Total Runs</CardTitle>
-                            <Play className="h-4 w-4 text-zinc-500" />
+                            <Play className="h-4 w-4 text-blue-500" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-semibold">{stats?.totalRuns || 0}</div>
@@ -337,7 +412,7 @@ export default function DevDashboard() {
                         <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
                             <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-800/40 bg-zinc-900/10">
                                 <div className="space-y-1">
-                                    <CardTitle className="text-base text-zinc-200">Cron Scheduler</CardTitle>
+                                    <CardTitle className="text-base text-zinc-200">Background Jobs</CardTitle>
                                     <CardDescription className="text-zinc-500">Automated background jobs</CardDescription>
                                 </div>
                                 <Dialog open={cronDialogOpen} onOpenChange={setCronDialogOpen}>
@@ -355,7 +430,7 @@ export default function DevDashboard() {
                                             <div className="space-y-2">
                                                 <Label className="text-zinc-300">Job Name</Label>
                                                 <Input
-                                                    value={newCronName}
+                                                    value={newCronName ?? ""}
                                                     onChange={e => setNewCronName(e.target.value)}
                                                     placeholder="e.g. Midnight Sync"
                                                     className="bg-zinc-900/50 border-zinc-800 text-zinc-200"
@@ -364,7 +439,7 @@ export default function DevDashboard() {
                                             <div className="space-y-2">
                                                 <Label className="text-zinc-300">Cron Expression</Label>
                                                 <Input
-                                                    value={newCronExpression}
+                                                    value={newCronExpression ?? ""}
                                                     onChange={e => setNewCronExpression(e.target.value)}
                                                     placeholder="0 0 * * *"
                                                     className="bg-zinc-900/50 border-zinc-800 text-zinc-200"
@@ -384,7 +459,7 @@ export default function DevDashboard() {
                                 ) : (
                                     <div className="divide-y divide-zinc-800/40">
                                         {cronJobs.map(job => (
-                                            <div key={job.id} className="flex items-center justify-between p-4 hover:bg-zinc-800/20 transition-colors">
+                                            <div key={job.id} className="flex items-center justify-between px-6 py-4 hover:bg-zinc-800/20 transition-colors">
                                                 <div>
                                                     <div className="font-medium text-sm text-zinc-200">{job.name}</div>
                                                     <div className="text-xs text-zinc-500 font-mono mt-0.5">{job.expression}</div>
@@ -409,6 +484,64 @@ export default function DevDashboard() {
 
                     <div className="lg:col-span-2 space-y-6">
 
+                        {/* User Mapping & Blacklist */}
+                        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
+                            <CardHeader className="border-b border-zinc-800/40 bg-zinc-900/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div className="space-y-1">
+                                    <CardTitle className="text-base text-zinc-200">User Directory & Blacklist</CardTitle>
+                                    <CardDescription className="text-zinc-500">Map usernames to real names and exclude users from monitor</CardDescription>
+                                </div>
+                                <Button onClick={handleSaveUsers} size="sm" className="bg-zinc-100 text-zinc-900 hover:bg-white font-medium shrink-0 transition-all active:scale-[0.98] cursor-pointer hover:shadow-md">
+                                    <Save className="h-4 w-4 mr-2" /> Save user settings
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="pt-6 space-y-4">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                                    <Input
+                                        placeholder="Search usernames..."
+                                        className="pl-9 bg-zinc-950 border-zinc-800 text-sm h-10"
+                                        value={userSearch}
+                                        onChange={(e) => setUserSearch(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="max-h-[400px] overflow-y-auto border border-zinc-800/50 rounded-xl divide-y divide-zinc-800/40 bg-zinc-900/30 custom-scrollbar">
+                                    {availableUsers
+                                        .filter(u => u.toLowerCase().includes(userSearch.toLowerCase()))
+                                        .map(username => (
+                                            <div key={username} className="p-4 grid grid-cols-1 sm:grid-cols-[200px_1fr_auto] items-center gap-x-8 gap-y-4 hover:bg-zinc-800/20 transition-colors">
+                                                <div className="space-y-0.5 min-w-0">
+                                                    <div className="font-mono text-[10px] text-zinc-500 font-bold uppercase tracking-wider truncate">{username}</div>
+                                                    <div className="text-sm font-semibold text-zinc-200 truncate">
+                                                        {userMappings[username] || <span className="text-zinc-600 italic font-normal">No display name</span>}
+                                                    </div>
+                                                </div>
+
+                                                <div className="w-full max-w-[300px]">
+                                                    <Input
+                                                        placeholder="Assign real name..."
+                                                        className="h-9 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-zinc-700"
+                                                        value={userMappings[username] ?? ""}
+                                                        onChange={(e) => updateUserMapping(username, e.target.value)}
+                                                    />
+                                                </div>
+
+                                                <div className="flex items-center gap-3 px-3 py-2 rounded-xl border border-zinc-800/60 bg-zinc-950/40 sm:ml-auto">
+                                                    <Label className="text-[10px] font-black uppercase text-zinc-500 whitespace-nowrap tracking-tighter">Blacklist</Label>
+                                                    <Switch
+                                                        checked={blacklist.includes(username)}
+                                                        onCheckedChange={() => toggleBlacklist(username)}
+                                                        className="data-[state=checked]:bg-red-600 scale-90"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         {/* Threshold Settings */}
                         <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
                             <CardHeader className="border-b border-zinc-800/40 bg-zinc-900/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -416,66 +549,73 @@ export default function DevDashboard() {
                                     <CardTitle className="text-base text-zinc-200">Performance Thresholds</CardTitle>
                                     <CardDescription className="text-zinc-500">Configure score boundaries per workflow</CardDescription>
                                 </div>
-                                <Button onClick={handleUpdateThresholds} size="sm" className="bg-zinc-100 text-zinc-900 hover:bg-white font-medium shrink-0">
+                                <Button onClick={handleUpdateThresholds} size="sm" className="bg-zinc-100 text-zinc-900 hover:bg-white font-medium shrink-0 transition-all active:scale-[0.98] cursor-pointer hover:shadow-md">
                                     <Save className="h-4 w-4 mr-2" /> Save configuration
                                 </Button>
                             </CardHeader>
                             <CardContent className="pt-6">
-                                <form onSubmit={handleUpdateThresholds} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {configKeys.map((cfg) => {
-                                        const tValues = thresholds[cfg.id] || { emerald: 100, blue: 60, orange: 40, red: 0 };
-                                        return (
-                                            <div key={cfg.id} className="p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30 space-y-4">
-                                                <h3 className="font-semibold text-sm text-zinc-200 mb-2">{cfg.label}</h3>
+                                <form onSubmit={handleUpdateThresholds} className="space-y-8">
+                                    {configGroups.map((group) => (
+                                        <div key={group.title} className="space-y-4">
+                                            <h3 className="text-zinc-400 text-xs font-semibold uppercase tracking-wider px-1">{group.title}</h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {group.keys.map((cfg) => {
+                                                    const tValues = thresholds[cfg.id] || { emerald: 100, blue: 60, orange: 40, red: 0 };
+                                                    return (
+                                                        <div key={cfg.id} className="p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30 space-y-4">
+                                                            <h4 className="font-semibold text-sm text-zinc-200 mb-2">{cfg.label}</h4>
 
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-1.5 flex flex-col">
-                                                        <Label className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Emerald &ge;</Label>
-                                                        <Input
-                                                            type="number"
-                                                            className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-emerald-500/50"
-                                                            value={tValues.emerald}
-                                                            onChange={(e) => updateSingleThreshold(cfg.id, 'emerald', Number(e.target.value))}
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1.5 flex flex-col">
-                                                        <Label className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Blue &ge;</Label>
-                                                        <Input
-                                                            type="number"
-                                                            className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-blue-500/50"
-                                                            value={tValues.blue}
-                                                            onChange={(e) => updateSingleThreshold(cfg.id, 'blue', Number(e.target.value))}
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1.5 flex flex-col">
-                                                        <Label className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">Orange &ge;</Label>
-                                                        <Input
-                                                            type="number"
-                                                            className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-orange-500/50"
-                                                            value={tValues.orange}
-                                                            onChange={(e) => updateSingleThreshold(cfg.id, 'orange', Number(e.target.value))}
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1.5 flex flex-col">
-                                                        <Label className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Red &ge;</Label>
-                                                        <Input
-                                                            type="number"
-                                                            className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-red-500/50"
-                                                            value={tValues.red}
-                                                            onChange={(e) => updateSingleThreshold(cfg.id, 'red', Number(e.target.value))}
-                                                        />
-                                                    </div>
-                                                </div>
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div className="space-y-1.5 flex flex-col">
+                                                                    <Label className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Emerald &ge;</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-emerald-500/50"
+                                                                        value={tValues.emerald ?? ""}
+                                                                        onChange={(e) => updateSingleThreshold(cfg.id, 'emerald', Number(e.target.value))}
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5 flex flex-col">
+                                                                    <Label className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">Blue &ge;</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-blue-500/50"
+                                                                        value={tValues.blue ?? ""}
+                                                                        onChange={(e) => updateSingleThreshold(cfg.id, 'blue', Number(e.target.value))}
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5 flex flex-col">
+                                                                    <Label className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">Orange &ge;</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-orange-500/50"
+                                                                        value={tValues.orange ?? ""}
+                                                                        onChange={(e) => updateSingleThreshold(cfg.id, 'orange', Number(e.target.value))}
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5 flex flex-col">
+                                                                    <Label className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Red &ge;</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-red-500/50"
+                                                                        value={tValues.red ?? ""}
+                                                                        onChange={(e) => updateSingleThreshold(cfg.id, 'red', Number(e.target.value))}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
-                                        );
-                                    })}
+                                        </div>
+                                    ))}
                                 </form>
                             </CardContent>
                         </Card>
 
                         {/* Logs */}
-                        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
-                            <CardHeader className="border-b border-zinc-800/40 bg-zinc-900/10">
+                        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden gap-0">
+                            <CardHeader className="border-b border-zinc-800/40 bg-zinc-900/10 pb-6">
                                 <CardTitle className="text-base text-zinc-200">Execution Logs</CardTitle>
                                 <CardDescription className="text-zinc-500">Recent script runs (Last 5)</CardDescription>
                             </CardHeader>
@@ -488,10 +628,10 @@ export default function DevDashboard() {
                                     <Table>
                                         <TableHeader className="bg-zinc-900/60 border-b border-zinc-800/40">
                                             <TableRow className="border-none hover:bg-transparent">
-                                                <TableHead className="py-3 text-xs font-semibold tracking-wider text-zinc-400 uppercase">Status</TableHead>
-                                                <TableHead className="py-3 text-xs font-semibold tracking-wider text-zinc-400 uppercase">Type</TableHead>
-                                                <TableHead className="py-3 text-xs font-semibold tracking-wider text-zinc-400 uppercase">Timestamp</TableHead>
-                                                <TableHead className="py-3 text-xs font-semibold tracking-wider text-zinc-400 uppercase text-right">Duration</TableHead>
+                                                <TableHead className="py-3 text-xs font-medium tracking-wider text-zinc-500 uppercase">Status</TableHead>
+                                                <TableHead className="py-3 text-xs font-medium tracking-wider text-zinc-500 uppercase">Type</TableHead>
+                                                <TableHead className="py-3 text-xs font-medium tracking-wider text-zinc-500 uppercase">Timestamp</TableHead>
+                                                <TableHead className="py-3 text-xs font-medium tracking-wider text-zinc-500 uppercase text-right">Duration</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
