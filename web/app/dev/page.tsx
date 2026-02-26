@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Play, Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Activity, Plus, Trash2, Power, Settings2, Save, Search, Terminal } from "lucide-react";
+import { Play, Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Activity, Plus, Trash2, Power, Settings2, Save, Search, Terminal, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -38,6 +38,7 @@ export default function DevDashboard() {
     const [newCronName, setNewCronName] = useState("");
     const [newCronExpression, setNewCronExpression] = useState("* * * * *");
     const [cronDialogOpen, setCronDialogOpen] = useState(false);
+    const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
     const fetchStats = async () => {
         try {
@@ -191,6 +192,25 @@ export default function DevDashboard() {
         }
     };
 
+    const handleResetStats = async () => {
+        try {
+            const res = await fetch("/api/stats", { method: "POST" });
+            if (res.ok) {
+                toast.success("Execution statistics have been reset", {
+                    style: { background: "#18181b", borderColor: "#3f3f46", color: "#10b981" }
+                });
+                fetchStats();
+            } else {
+                toast.error("Failed to reset statistics");
+            }
+        } catch (e) {
+            toast.error("Network error during reset");
+        } finally {
+            setResetDialogOpen(false);
+        }
+    };
+
+
     const handleSaveUsers = async () => {
         try {
             const res = await fetch("/api/users", {
@@ -308,15 +328,43 @@ export default function DevDashboard() {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-3 bg-zinc-900/30 px-3 py-2 rounded-xl border border-zinc-800/50">
-                        <div className={cn(
-                            "w-2 h-2 rounded-full",
-                            stats?.isRunning || isExecuting ? "bg-amber-400 animate-pulse" : "bg-emerald-400"
-                        )} />
-                        <span className="text-sm font-semibold text-zinc-300">
-                            {stats?.isRunning || isExecuting ? 'Script Executing...' : 'System Idle'}
-                        </span>
+                    <div className="flex items-center gap-4">
+                        <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-9 border-zinc-800 bg-zinc-900/30 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 text-zinc-400 gap-2 transition-all">
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    Reset Stats
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md bg-[#09090b] border-zinc-800/60 shadow-2xl sm:rounded-2xl">
+                                <DialogHeader>
+                                    <DialogTitle className="text-zinc-100">Reset Execution Statistics?</DialogTitle>
+                                    <DialogDescription className="text-zinc-400">
+                                        This will permanently clear all cumulative run counts, success rates, and execution logs. This action cannot be undone.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex justify-end gap-3 pt-4">
+                                    <Button variant="ghost" onClick={() => setResetDialogOpen(false)} className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800">
+                                        Cancel
+                                    </Button>
+                                    <Button onClick={handleResetStats} className="bg-red-600 hover:bg-red-500 text-white font-medium px-6">
+                                        Reset Everything
+                                    </Button>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+
+                        <div className="flex items-center gap-3 bg-zinc-900/30 px-3 py-2 rounded-xl border border-zinc-800/50">
+                            <div className={cn(
+                                "w-2 h-2 rounded-full",
+                                stats?.isRunning || isExecuting ? "bg-amber-400 animate-pulse" : "bg-emerald-400"
+                            )} />
+                            <span className="text-sm font-semibold text-zinc-300">
+                                {stats?.isRunning || isExecuting ? 'Script Executing...' : 'System Idle'}
+                            </span>
+                        </div>
                     </div>
+
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

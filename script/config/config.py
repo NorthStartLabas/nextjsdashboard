@@ -25,7 +25,8 @@ FLOOR_MAPPING = {
     'LG2': 'ground_floor',
     'DC2': 'ground_floor',
     'DC4': 'ground_floor',
-    'NOA': 'ground_floor'
+    'NOA': 'ground_floor',
+    'P22': 'second_floor'
 }
 
 BREAK_MAPPING = {

@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getStore } from '@/lib/store';
+import { getStore, resetStats } from '@/lib/store';
 import { getIsRunning } from '@/lib/scriptRunner';
+import { ensureCronInitialized } from '@/lib/cronManager';
 
 export async function GET() {
+    ensureCronInitialized();
     const store = getStore();
 
-    const totalRuns = store.runs.length;
-    const successfulRuns = store.runs.filter(r => r.success).length;
+    const totalRuns = store.totalRunsCount || store.runs.length;
+    const successfulRuns = store.totalSuccessfulRuns || store.runs.filter(r => r.success).length;
+    const totalDurationMs = store.totalDurationMs || store.runs.reduce((acc, r) => acc + (r.durationMs || 0), 0);
     const failedRuns = totalRuns - successfulRuns;
 
     const successRate = totalRuns > 0 ? ((successfulRuns / totalRuns) * 100).toFixed(1) : 0;
-
-    const avgDurationMs = totalRuns > 0
-        ? store.runs.reduce((acc, r) => acc + (r.durationMs || 0), 0) / totalRuns
-        : 0;
+    const avgDurationMs = totalRuns > 0 ? totalDurationMs / totalRuns : 0;
 
     let uptimeString = 'Unknown';
     if (store.uptimeStart) {
@@ -23,9 +23,6 @@ export async function GET() {
         uptimeString = `${hours}h ${mins}m`;
     }
 
-    // Next.js restarts when code changes. In production, uptimeStart in store represents 
-    // the first time the server created the store or initialized. 
-    // Let's use standard node uptime just for the volatile memory view.
     const memoryUptime = process.uptime();
     const mHours = Math.floor(memoryUptime / 3600);
     const mMins = Math.floor((memoryUptime % 3600) / 60);
@@ -42,3 +39,10 @@ export async function GET() {
         isRunning: getIsRunning()
     });
 }
+
+export async function POST() {
+    resetStats();
+    return NextResponse.json({ success: true });
+}
+
+

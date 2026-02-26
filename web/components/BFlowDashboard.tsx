@@ -77,7 +77,17 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
     const [detailedLines, setDetailedLines] = useState<any[]>([]);
     const [detailedHU, setDetailedHU] = useState<any[]>([]);
     const [linesSearchQuery, setLinesSearchQuery] = useState("");
+    const [linesPriorityFilter, setLinesPriorityFilter] = useState<string[]>([]);
+    const [linesFloorFilter, setLinesFloorFilter] = useState<string[]>([]);
+    const [linesCutoffFilter, setLinesCutoffFilter] = useState<string[]>([]);
+    const [linesStatusFilter, setLinesStatusFilter] = useState<string[]>([]);
     const [huSearchQuery, setHUSearchQuery] = useState("");
+    const [huPriorityFilter, setHUPriorityFilter] = useState<string[]>([]);
+    const [huFloorFilter, setHUFloorFilter] = useState<string[]>([]);
+    const [huCutoffFilter, setHUCutoffFilter] = useState<string[]>([]);
+    const [huStatusFilter, setHUStatusFilter] = useState<string[]>([]);
+    const [huGroupedFilter, setHUGroupedFilter] = useState<string[]>([]);
+    const [huPickInitiatedFilter, setHUPickInitiatedFilter] = useState<string[]>([]);
     const [linesLoading, setLinesLoading] = useState(false);
     const [huLoading, setHULoading] = useState(false);
     const [lastRefreshed, setLastRefreshed] = useState("");
@@ -118,8 +128,9 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
     const handleExportLines = () => {
         if (!detailedLines.length) return;
 
-        const headers = ["Delivery", "Priority", "Cutoff", "Bin", "Type", "Work Area", "Qty", "Weight", "Volume", "Floor"];
-        const rows = detailedLines.map(line => [
+        const currentFiltered = filteredDetailedLinesRaw;
+        const headers = ["Delivery", "Priority", "Cutoff", "Bin", "Type", "Work Area", "Qty", "Status", "Volume", "Floor"];
+        const rows = currentFiltered.map(line => [
             `"${line.VBELN || ''}"`,
             `"${line.LPRIO || ''}"`,
             `"${line.WAUHR || ''}"`,
@@ -127,7 +138,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
             `"${line.VLTYP || ''}"`,
             `"${line.KOBER || ''}"`,
             `${line.UMREZ || 0}`,
-            `${line.BRGEW || 0}`,
+            line.QDATU ? '"Picked"' : '"Open"',
             `${line.VOLUM || 0}`,
             `"${line.FLOOR || ''}"`
         ]);
@@ -149,17 +160,21 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
     };
 
     const handleExportHU = () => {
-        if (!detailedHU.length) return;
+        if (!filteredDetailedHU.length) return;
 
-        const headers = ["External HU", "Delivery", "Priority", "Cutoff", "Status", "Lns / HU", "Itm / HU"];
-        const rows = detailedHU.map(hu => [
+        const headers = ["External HU", "Delivery", "Priority", "Cutoff", "Grouped", "Group ID", "Pick Initiated", "Status", "Lns / HU", "Itm / HU", "Floor"];
+        const rows = filteredDetailedHU.map(hu => [
             `"${hu.EXIDV || ''}"`,
             `"${hu.VBELN || ''}"`,
             `"${hu.LPRIO || ''}"`,
             `"${hu.WAUHR || ''}"`,
+            `"${hu.GROUPED || 'NOT OK'}"`,
+            `"${hu.ZEXIDVGRP || ''}"`,
+            `"${hu.PICKINIUSER || ''}"`,
             hu.IS_PICKED ? '"Picked"' : '"Open"',
             hu.LINES_PER_HU || 0,
-            hu.ITEMS_PER_HU || 0
+            hu.ITEMS_PER_HU || 0,
+            `"${hu.FLOOR || ''}"`
         ]);
 
         const csvContent = [
@@ -178,32 +193,130 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
         document.body.removeChild(link);
     };
 
-    const filteredDetailedLines = useMemo(() => {
+    const filteredDetailedLinesRaw = useMemo(() => {
         let filtered = detailedLines;
+
         if (linesSearchQuery) {
             const query = linesSearchQuery.toLowerCase();
-            filtered = detailedLines.filter(line =>
+            filtered = filtered.filter(line =>
                 line.VBELN?.toLowerCase().includes(query) ||
                 line.VLPLA?.toLowerCase().includes(query) ||
                 line.VLTYP?.toLowerCase().includes(query) ||
                 line.KOBER?.toLowerCase().includes(query)
             );
         }
-        return filtered.slice(0, 500); // Performance optimization
-    }, [detailedLines, linesSearchQuery]);
+
+        if (linesPriorityFilter.length > 0) {
+            filtered = filtered.filter(line => linesPriorityFilter.includes(String(line.LPRIO).replace(/^0+/, '')));
+        }
+
+        if (linesFloorFilter.length > 0) {
+            filtered = filtered.filter(line => linesFloorFilter.includes(line.FLOOR));
+        }
+
+        if (linesCutoffFilter.length > 0) {
+            filtered = filtered.filter(line => {
+                // Normalize WAUHR to HH:MM for comparison (handles both 'HH:MM:SS' and '2026-02-26 HH:MM:SS')
+                const wauhr = String(line.WAUHR || '');
+                const timePart = wauhr.includes(' ') ? wauhr.split(' ')[1] : wauhr;
+                return linesCutoffFilter.includes(timePart.substring(0, 5));
+            });
+        }
+
+        if (linesStatusFilter.length > 0) {
+            filtered = filtered.filter(line => {
+                const isPicked = !!line.QDATU;
+                return linesStatusFilter.includes(isPicked ? "Picked" : "Open");
+            });
+        }
+
+        return filtered;
+    }, [detailedLines, linesSearchQuery, linesPriorityFilter, linesFloorFilter, linesCutoffFilter, linesStatusFilter]);
+
+    const filteredDetailedLines = useMemo(() => {
+        return filteredDetailedLinesRaw.slice(0, 500);
+    }, [filteredDetailedLinesRaw]);
 
     const filteredDetailedHU = useMemo(() => {
         let filtered = detailedHU;
+
         if (huSearchQuery) {
             const query = huSearchQuery.toLowerCase();
-            filtered = detailedHU.filter(hu =>
+            filtered = filtered.filter(hu =>
                 hu.VBELN?.toLowerCase().includes(query) ||
                 hu.EXIDV?.toLowerCase().includes(query) ||
-                hu.LPRIO?.toLowerCase().includes(query)
+                hu.ZEXIDVGRP?.toLowerCase().includes(query) ||
+                hu.PICKINIUSER?.toLowerCase().includes(query)
             );
         }
-        return filtered.slice(0, 500);
-    }, [detailedHU, huSearchQuery]);
+
+        if (huPriorityFilter.length > 0) {
+            filtered = filtered.filter(hu => huPriorityFilter.includes(String(hu.LPRIO).replace(/^0+/, '')));
+        }
+
+        if (huFloorFilter.length > 0) {
+            filtered = filtered.filter(hu => huFloorFilter.includes(hu.FLOOR));
+        }
+
+        if (huCutoffFilter.length > 0) {
+            filtered = filtered.filter(hu => {
+                const wauhr = String(hu.WAUHR || '');
+                const timePart = wauhr.includes(' ') ? wauhr.split(' ')[1] : wauhr;
+                return huCutoffFilter.includes(timePart.substring(0, 5));
+            });
+        }
+
+        if (huStatusFilter.length > 0) {
+            filtered = filtered.filter(hu => {
+                const isPicked = !!hu.IS_PICKED;
+                return huStatusFilter.includes(isPicked ? "Picked" : "Open");
+            });
+        }
+
+        if (huGroupedFilter.length > 0) {
+            filtered = filtered.filter(hu => huGroupedFilter.includes(hu.GROUPED || "NOT OK"));
+        }
+
+        if (huPickInitiatedFilter.length > 0) {
+            filtered = filtered.filter(hu => {
+                const hasValue = !!hu.PICKINIUSER && hu.PICKINIUSER !== 'None' && hu.PICKINIUSER !== 'null';
+                if (huPickInitiatedFilter.includes("Empty") && huPickInitiatedFilter.includes("Has Value")) return true;
+                if (huPickInitiatedFilter.includes("Empty")) return !hasValue;
+                if (huPickInitiatedFilter.includes("Has Value")) return hasValue;
+                return true;
+            });
+        }
+
+        return filtered;
+    }, [detailedHU, huSearchQuery, huPriorityFilter, huFloorFilter, huCutoffFilter, huStatusFilter, huGroupedFilter, huPickInitiatedFilter]);
+
+    const displayDetailedHU = useMemo(() => {
+        return filteredDetailedHU.slice(0, 500);
+    }, [filteredDetailedHU]);
+
+    const filterOptions = useMemo(() => {
+        return {
+            priorities: Array.from(new Set([
+                ...detailedLines.map(l => String(l.LPRIO).replace(/^0+/, '')),
+                ...detailedHU.map(h => String(h.LPRIO).replace(/^0+/, ''))
+            ])).filter(Boolean).sort((a, b) => parseInt(a) - parseInt(b)),
+            floors: Array.from(new Set([
+                ...detailedLines.map(l => l.FLOOR),
+                ...detailedHU.map(h => h.FLOOR)
+            ])).filter(Boolean).sort(),
+            cutoffs: Array.from(new Set([
+                ...detailedLines.map(l => l.WAUHR),
+                ...detailedHU.map(h => h.WAUHR)
+            ].filter(Boolean).map(c => {
+                // Always normalize to HH:MM regardless of whether WAUHR is 'HH:MM:SS' or '2026-02-26 HH:MM:SS'
+                const timePart = c.includes(' ') ? c.split(' ')[1] : c;
+                return timePart.substring(0, 5);
+            }))).sort(),
+            statuses: ["Picked", "Open"],
+            huFloors: Array.from(new Set(detailedHU.map(h => h.FLOOR))).filter(Boolean).sort(),
+            grouped: ["OK", "NOT OK"]
+        };
+    }, [detailedLines, detailedHU]);
 
     const fetchData = async () => {
         try {
@@ -643,18 +756,18 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">Picked Lines</p>
-                                    <p className="text-base font-black text-emerald-500">{(cutoff.picked_lines || 0).toLocaleString()}</p>
+                                    <p className="text-base font-black text-white">{(cutoff.picked_lines || 0).toLocaleString()}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-[#f59e0b]/60 uppercase tracking-tighter">Handling Units</p>
+                                    <p className="text-[10px] font-bold text-white uppercase tracking-tighter">Handling Units</p>
                                     <div className="flex items-baseline gap-1.5">
-                                        <p className="text-base font-black text-[#f59e0b]">{(cutoff.total_hus || 0).toLocaleString()}</p>
-                                        <p className="text-[10px] font-bold text-emerald-500/80">({(cutoff.picked_hus || 0)})</p>
+                                        <p className="text-base font-black text-white">{(cutoff.total_hus || 0).toLocaleString()}</p>
+                                        <p className="text-[10px] font-bold text-emerald-500">({(cutoff.picked_hus || 0)})</p>
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-blue-600/60 uppercase tracking-tighter">Deliveries</p>
-                                    <p className="text-base font-black text-blue-500">{(cutoff.total_deliveries || 0).toLocaleString()}</p>
+                                    <p className="text-[10px] font-bold text-white uppercase tracking-tighter">Deliveries</p>
+                                    <p className="text-base font-black text-white">{(cutoff.total_deliveries || 0).toLocaleString()}</p>
                                 </div>
                                 <div className="col-span-2 pt-2 border-t border-zinc-900/50">
                                     <div className="flex items-baseline gap-2">
@@ -825,11 +938,11 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                             <TableRow className="border-zinc-900/50 hover:bg-transparent bg-zinc-900/5">
                                 <TableHead className="text-[8px] font-black uppercase text-zinc-600 pl-6 h-10">Floor</TableHead>
                                 <TableHead className="text-[8px] font-black uppercase text-zinc-600 text-center h-10">Open Lines</TableHead>
-                                <TableHead className="text-[8px] font-black uppercase text-emerald-600/60 text-center h-10">Picked Lines</TableHead>
-                                <TableHead className="text-[8px] font-black uppercase text-[#f59e0b]/60 text-center h-10">Open HUs</TableHead>
-                                <TableHead className="text-[8px] font-black uppercase text-blue-600/60 text-center h-10">Open Deliv.</TableHead>
-                                <TableHead className="text-[8px] font-black uppercase text-indigo-600/60 text-center h-10">DP10 Deliv.</TableHead>
-                                <TableHead className="text-[8px] font-black uppercase text-[#ef4444]/60 text-right pr-6 h-10">DP10 Lines</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-zinc-600 text-center h-10">Picked Lines</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-zinc-600 text-center h-10">Open HUs</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-zinc-600 text-center h-10">Open Deliv.</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-zinc-600 text-center h-10">DP10 Deliv.</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-[#ef4444] text-right pr-6 h-10">DP10 Lines</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -838,14 +951,14 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                     <TableCell className="font-black text-zinc-400 uppercase text-[10px] pl-6 py-3">{floor.replace('_', ' ')}</TableCell>
                                     <TableCell className="text-center text-[11px] font-bold text-zinc-200 py-3 font-mono">{metrics.total.lines.toLocaleString()}</TableCell>
                                     <TableCell className="text-center text-[11px] font-bold text-emerald-500 py-3 font-mono">{metrics.picked.lines.toLocaleString()}</TableCell>
-                                    <TableCell className="text-center text-[11px] font-bold text-[#f59e0b] py-3 font-mono">
+                                    <TableCell className="text-center text-[11px] font-bold py-3 font-mono">
                                         <div className="flex flex-col">
-                                            <span>{metrics.hu_summary?.total || 0}</span>
-                                            <span className="text-[9px] opacity-60">({metrics.hu_summary?.picked || 0} picked)</span>
+                                            <span className="text-white">{metrics.hu_summary?.total || 0}</span>
+                                            <span className="text-[9px] text-emerald-500 font-bold">({metrics.hu_summary?.picked || 0} picked)</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-center text-[11px] font-bold text-blue-500 py-3 font-mono">{(metrics.total.deliveries || 0).toLocaleString()}</TableCell>
-                                    <TableCell className="text-center text-[11px] font-bold text-indigo-500 py-3 font-mono">{(metrics.total.dp10_deliveries || 0).toLocaleString()}</TableCell>
+                                    <TableCell className="text-center text-[11px] font-bold text-white py-3 font-mono">{(metrics.total.deliveries || 0).toLocaleString()}</TableCell>
+                                    <TableCell className="text-center text-[11px] font-bold text-white py-3 font-mono">{(metrics.total.dp10_deliveries || 0).toLocaleString()}</TableCell>
                                     <TableCell className="text-right pr-6 text-[11px] font-black text-[#ef4444] py-3 font-mono">{(metrics.total.dp10_lines || 0).toLocaleString()}</TableCell>
                                 </TableRow>
                             ))}
@@ -1104,10 +1217,16 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                         <h2 className="text-2xl font-black text-white tracking-tight">Open Lines Detail</h2>
                                         <div className="flex items-center gap-2">
                                             <p className="text-sm text-zinc-500 font-medium">All pending picking lines for {scenario} scenario</p>
-                                            {detailedLines.length > 500 && (
+                                            {filteredDetailedLinesRaw.length > 500 ? (
                                                 <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20 font-bold uppercase">
-                                                    Showing top 500 of {detailedLines.length}
+                                                    Showing top 500 of {filteredDetailedLinesRaw.length}
                                                 </span>
+                                            ) : (
+                                                filteredDetailedLinesRaw.length > 0 && (
+                                                    <span className="text-[10px] bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded border border-blue-500/20 font-bold uppercase">
+                                                        {filteredDetailedLinesRaw.length} Lines Found
+                                                    </span>
+                                                )
                                             )}
                                         </div>
                                     </div>
@@ -1117,7 +1236,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
                                         <Input
-                                            placeholder="Search delivery, bin, area..."
+                                            placeholder="Search delivery, bin..."
                                             value={linesSearchQuery}
                                             onChange={(e) => setLinesSearchQuery(e.target.value)}
                                             className="h-10 pl-9 pr-4 bg-zinc-900/50 border-zinc-800 rounded-xl text-sm focus:outline-none focus-visible:ring-blue-500/50 transition-all w-full sm:w-64"
@@ -1125,7 +1244,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                     </div>
                                     <Button
                                         onClick={handleExportLines}
-                                        disabled={!detailedLines.length}
+                                        disabled={!filteredDetailedLinesRaw.length}
                                         variant="outline"
                                         size="sm"
                                         className="h-10 gap-2 bg-emerald-600/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-600 hover:text-white transition-all rounded-xl font-bold"
@@ -1135,7 +1254,14 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        onClick={() => setIsLinesModalOpen(false)}
+                                        onClick={() => {
+                                            setIsLinesModalOpen(false);
+                                            setLinesSearchQuery("");
+                                            setLinesPriorityFilter([]);
+                                            setLinesFloorFilter([]);
+                                            setLinesCutoffFilter([]);
+                                            setLinesStatusFilter([]);
+                                        }}
                                         className="h-10 w-10 p-0 flex items-center justify-center bg-zinc-900/50 hover:bg-white/5 rounded-xl border border-zinc-800 transition-all text-zinc-500 hover:text-white"
                                     >
                                         <ArrowRight className="w-5 h-5" />
@@ -1143,85 +1269,212 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
-                                {linesLoading ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-4 py-20">
-                                        <motion.div
-                                            animate={{ rotate: 360 }}
-                                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                            className="w-10 h-10 border-2 border-zinc-900 border-t-blue-500 rounded-full"
-                                        />
-                                        <span className="text-sm font-bold uppercase tracking-widest">Loading Detail...</span>
+                            <div className="flex flex-1 min-h-0 overflow-hidden">
+                                {/* Vertical Filter Sidebar */}
+                                <aside className="w-72 border-r border-zinc-900 bg-zinc-900/20 flex flex-col p-6 overflow-y-auto custom-scrollbar gap-8">
+                                    <div className="flex items-center gap-3 text-zinc-400 pb-2 border-b border-zinc-800/50">
+                                        <Filter className="w-4 h-4" />
+                                        <span className="text-xs font-black uppercase tracking-[0.2em]">Active Filters</span>
                                     </div>
-                                ) : (
-                                    <Table>
-                                        <TableHeader className="sticky top-0 z-10 bg-zinc-950 border-b border-zinc-900">
-                                            <TableRow className="border-none hover:bg-transparent">
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 pl-8">Delivery</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Prio</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Cutoff</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Bin</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Type</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Work Area</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Qty</TableHead>
-                                                {type !== 'ms' && <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Floor</TableHead>}
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-right pr-8">Weight</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {filteredDetailedLines.length > 0 ? (
-                                                filteredDetailedLines.map((line: any, i: number) => (
-                                                    <TableRow key={i} className="border-zinc-900/30 hover:bg-white/[0.01] transition-colors border-b">
-                                                        <TableCell className="pl-8 py-4 font-mono text-sm font-bold text-zinc-300">
-                                                            {line.VBELN}
-                                                        </TableCell>
-                                                        <TableCell className="text-center">
-                                                            <span className={cn(
-                                                                "px-2 py-0.5 rounded text-[10px] font-black uppercase",
-                                                                line.LPRIO == '10' ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-zinc-800/50 text-zinc-400 border border-zinc-700/30"
-                                                            )}>
-                                                                {line.LPRIO}
-                                                            </span>
-                                                        </TableCell>
-                                                        <TableCell className="text-center font-mono text-sm text-zinc-400">
-                                                            {line.WAUHR}
-                                                        </TableCell>
-                                                        <TableCell className="text-center font-bold text-zinc-300">
-                                                            {line.VLPLA}
-                                                        </TableCell>
-                                                        <TableCell className="text-center">
-                                                            <span className="text-xs font-semibold text-zinc-500">{line.VLTYP}</span>
-                                                        </TableCell>
-                                                        <TableCell className="text-center">
-                                                            <span className="px-2 py-1 bg-zinc-900/50 rounded-lg text-[10px] font-bold text-zinc-400 border border-zinc-800">
-                                                                {line.KOBER}
-                                                            </span>
-                                                        </TableCell>
-                                                        <TableCell className="text-center font-mono font-bold text-blue-400">
-                                                            {line.UMREZ}
-                                                        </TableCell>
-                                                        {type !== 'ms' && (
-                                                            <TableCell className="text-center">
-                                                                <span className="text-[10px] uppercase font-black text-zinc-600">
-                                                                    {line.FLOOR?.replace('_', ' ')}
-                                                                </span>
-                                                            </TableCell>
+
+                                    {/* Status Section */}
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Processing Status</label>
+                                        <div className="flex flex-col gap-2">
+                                            {filterOptions.statuses.map(s => (
+                                                <button
+                                                    key={s}
+                                                    onClick={() => setLinesStatusFilter(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}
+                                                    className={cn(
+                                                        "flex items-center justify-between px-4 py-3 text-[11px] font-bold uppercase rounded-xl transition-all border",
+                                                        linesStatusFilter.includes(s)
+                                                            ? "bg-blue-600/10 border-blue-500 text-blue-400 shadow-lg shadow-blue-500/5"
+                                                            : "bg-zinc-900/50 border-zinc-800/50 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                                                    )}
+                                                >
+                                                    {s}
+                                                    {linesStatusFilter.includes(s) && <CheckCircle2 className="w-3.5 h-3.5" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Priority Section */}
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Pick Priority</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {filterOptions.priorities.map(p => (
+                                                <button
+                                                    key={p}
+                                                    onClick={() => setLinesPriorityFilter(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
+                                                    className={cn(
+                                                        "px-3 py-2.5 text-[11px] font-bold uppercase rounded-xl transition-all border text-center",
+                                                        linesPriorityFilter.includes(p)
+                                                            ? (p === '10' ? "bg-red-600/10 border-red-500 text-red-500" : "bg-zinc-600/20 border-zinc-500 text-zinc-300")
+                                                            : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:text-white"
+                                                    )}
+                                                >
+                                                    P{p}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Floor Section (CVNS only) */}
+                                    {type === 'cvns' && filterOptions.floors.length > 0 && (
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Floor Level</label>
+                                            <div className="flex flex-col gap-2">
+                                                {filterOptions.floors.map(f => (
+                                                    <button
+                                                        key={f}
+                                                        onClick={() => setLinesFloorFilter(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f])}
+                                                        className={cn(
+                                                            "px-4 py-3 text-[11px] font-bold uppercase rounded-xl transition-all border text-left",
+                                                            linesFloorFilter.includes(f)
+                                                                ? "bg-amber-600/10 border-amber-500 text-amber-500"
+                                                                : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:text-white"
                                                         )}
-                                                        <TableCell className="text-right pr-8 font-mono text-zinc-400">
-                                                            {line.BRGEW?.toLocaleString()} <span className="text-[8px] uppercase opacity-40">kg</span>
-                                                        </TableCell>
+                                                    >
+                                                        {f.replace('_', ' ')}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {filterOptions.cutoffs.length > 0 && (
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Cutoff Window</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {filterOptions.cutoffs.map(c => (
+                                                    <button
+                                                        key={c}
+                                                        onClick={() => setLinesCutoffFilter(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])}
+                                                        className={cn(
+                                                            "px-2 py-2.5 text-[10px] font-bold rounded-xl transition-all border text-center font-mono",
+                                                            linesCutoffFilter.includes(c)
+                                                                ? "bg-indigo-600/10 border-indigo-500 text-indigo-400"
+                                                                : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:text-white"
+                                                        )}
+                                                    >
+                                                        {c}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="mt-auto pt-6 border-t border-zinc-900/50">
+                                        <button
+                                            onClick={() => {
+                                                setLinesSearchQuery("");
+                                                setLinesPriorityFilter([]);
+                                                setLinesFloorFilter([]);
+                                                setLinesCutoffFilter([]);
+                                                setLinesStatusFilter([]);
+                                            }}
+                                            className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-zinc-900/60 border border-zinc-800 text-[11px] font-black uppercase text-zinc-500 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/30 transition-all active:scale-95"
+                                        >
+                                            <Zap className="w-3.5 h-3.5" />
+                                            Reset Filters
+                                        </button>
+                                    </div>
+                                </aside>
+
+                                {/* Main Table Content Section */}
+                                <div className="flex-1 flex flex-col min-w-0 bg-black/20">
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                        {linesLoading ? (
+                                            <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-4 py-20">
+                                                <motion.div
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                                    className="w-10 h-10 border-2 border-zinc-900 border-t-blue-500 rounded-full"
+                                                />
+                                                <span className="text-sm font-bold uppercase tracking-widest">Loading Detail...</span>
+                                            </div>
+                                        ) : (
+                                            <Table>
+                                                <TableHeader className="sticky top-0 z-10 bg-zinc-950 border-b border-zinc-900 shadow-lg">
+                                                    <TableRow className="border-none hover:bg-transparent">
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 pl-8">Delivery</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Prio</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Cutoff</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Bin</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Type</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Work Area</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Qty</TableHead>
+                                                        {type !== 'ms' && <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Floor</TableHead>}
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-right pr-8">Status</TableHead>
                                                     </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={9} className="h-64 text-center text-zinc-600 font-medium">
-                                                        {linesSearchQuery ? "No matching lines found" : "No open lines found"}
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                )}
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {filteredDetailedLines.length > 0 ? (
+                                                        filteredDetailedLines.map((line: any, i: number) => (
+                                                            <TableRow key={i} className="border-zinc-900/30 hover:bg-white/[0.01] transition-colors border-b">
+                                                                <TableCell className="pl-8 py-4 font-mono text-sm font-bold text-zinc-300">
+                                                                    {line.VBELN}
+                                                                </TableCell>
+                                                                <TableCell className="text-center">
+                                                                    <span className={cn(
+                                                                        "px-2 py-0.5 rounded text-[10px] font-black uppercase",
+                                                                        line.LPRIO == '10' ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-zinc-800/50 text-zinc-400 border border-zinc-700/30"
+                                                                    )}>
+                                                                        {line.LPRIO}
+                                                                    </span>
+                                                                </TableCell>
+                                                                <TableCell className="text-center font-mono text-sm text-zinc-400">
+                                                                    {line.WAUHR}
+                                                                </TableCell>
+                                                                <TableCell className="text-center font-bold text-zinc-300">
+                                                                    {line.VLPLA}
+                                                                </TableCell>
+                                                                <TableCell className="text-center">
+                                                                    <span className="text-xs font-semibold text-zinc-500">{line.VLTYP}</span>
+                                                                </TableCell>
+                                                                <TableCell className="text-center">
+                                                                    <span className="px-2 py-1 bg-zinc-900/50 rounded-lg text-[10px] font-bold text-zinc-400 border border-zinc-800">
+                                                                        {line.KOBER}
+                                                                    </span>
+                                                                </TableCell>
+                                                                <TableCell className="text-center font-mono font-bold text-blue-400">
+                                                                    {line.UMREZ}
+                                                                </TableCell>
+                                                                {type !== 'ms' && (
+                                                                    <TableCell className="text-center">
+                                                                        <span className="text-[10px] uppercase font-black text-zinc-600">
+                                                                            {line.FLOOR?.replace('_', ' ')}
+                                                                        </span>
+                                                                    </TableCell>
+                                                                )}
+                                                                <TableCell className="text-right pr-8 font-mono">
+                                                                    {line.QDATU ? (
+                                                                        <div className="flex items-center justify-end gap-1.5 text-emerald-500">
+                                                                            <CheckCircle2 className="w-3.5 h-3.5" />
+                                                                            <span className="text-[10px] font-black uppercase">Picked</span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="flex items-center justify-end gap-1.5 text-zinc-500/60">
+                                                                            <Circle className="w-3.5 h-3.5" />
+                                                                            <span className="text-[10px] font-black uppercase">Open</span>
+                                                                        </div>
+                                                                    )}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell colSpan={9} className="h-64 text-center text-zinc-600 font-medium font-mono text-xs uppercase tracking-widest leading-relaxed">
+                                                                {linesSearchQuery || linesPriorityFilter.length > 0 ? "No active lines match your current filters" : "All lines processed for this sector"}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     </div>
@@ -1241,7 +1494,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-6xl max-h-[90vh] bg-zinc-950 border border-zinc-900 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+                            className="relative w-full max-w-[95vw] max-h-[90vh] bg-zinc-950 border border-zinc-900 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
                         >
                             <div className="flex flex-col md:flex-row md:items-center justify-between p-6 border-b border-zinc-900 bg-zinc-900/50 gap-4">
                                 <div className="flex items-center gap-4">
@@ -1278,7 +1531,16 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        onClick={() => setIsHUModalOpen(false)}
+                                        onClick={() => {
+                                            setIsHUModalOpen(false);
+                                            setHUSearchQuery("");
+                                            setHUPriorityFilter([]);
+                                            setHUFloorFilter([]);
+                                            setHUCutoffFilter([]);
+                                            setHUStatusFilter([]);
+                                            setHUGroupedFilter([]);
+                                            setHUPickInitiatedFilter([]);
+                                        }}
                                         className="h-10 w-10 p-0 flex items-center justify-center bg-zinc-900/50 rounded-xl border border-zinc-800 transition-all text-zinc-500"
                                     >
                                         <ArrowRight className="w-5 h-5" />
@@ -1286,54 +1548,258 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
-                                {huLoading ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-4 py-20">
-                                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-10 h-10 border-2 border-zinc-900 border-t-blue-500 rounded-full" />
-                                        <span className="text-sm font-bold uppercase tracking-widest">Loading...</span>
+                            <div className="flex flex-1 min-h-0 overflow-hidden">
+                                {/* Vertical Filter Sidebar */}
+                                <aside className="w-72 border-r border-zinc-900 bg-zinc-900/20 flex flex-col p-6 overflow-y-auto custom-scrollbar gap-8">
+                                    <div className="flex items-center gap-3 text-zinc-400 pb-2 border-b border-zinc-800/50">
+                                        <Filter className="w-4 h-4" />
+                                        <span className="text-xs font-black uppercase tracking-[0.2em]">Active Filters</span>
                                     </div>
-                                ) : (
-                                    <Table>
-                                        <TableHeader className="sticky top-0 z-10 bg-zinc-950 border-b border-zinc-900">
-                                            <TableRow className="border-none hover:bg-transparent">
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 pl-8">Handling Unit</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Delivery</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Prio</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Cutoff</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Status</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-right pr-8">Lines / Items</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {filteredDetailedHU.map((hu: any, i: number) => (
-                                                <TableRow key={i} className="border-zinc-900/30 hover:bg-white/[0.01] transition-colors border-b">
-                                                    <TableCell className="pl-8 py-4 font-mono text-sm font-black text-blue-500">{hu.EXIDV}</TableCell>
-                                                    <TableCell className="text-center font-mono text-xs text-zinc-400">{hu.VBELN}</TableCell>
-                                                    <TableCell className="text-center">
-                                                        <span className={cn("px-2 py-0.5 rounded text-[10px] font-black", hu.LPRIO == '10' ? "bg-red-500/10 text-red-500" : "bg-zinc-800/50 text-zinc-500")}>
-                                                            {hu.LPRIO}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell className="text-center font-mono text-[10px] text-zinc-500">{hu.WAUHR?.split(' ')[1]?.substring(0, 5)}</TableCell>
-                                                    <TableCell className="text-center">
-                                                        {hu.IS_PICKED ? (
-                                                            <span className="flex items-center justify-center gap-1.5 text-emerald-500 font-black text-[10px] uppercase">
-                                                                <CheckCircle2 className="w-3.5 h-3.5" /> Picked
-                                                            </span>
-                                                        ) : (
-                                                            <span className="flex items-center justify-center gap-1.5 text-zinc-600 font-black text-[10px] uppercase">
-                                                                <Circle className="w-3.5 h-3.5" /> Pending
-                                                            </span>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell className="text-right pr-8 font-mono text-xs font-bold text-zinc-300">
-                                                        {hu.LINES_PER_HU} <span className="opacity-40">/</span> {hu.ITEMS_PER_HU}
-                                                    </TableCell>
-                                                </TableRow>
+
+                                    {/* Status Section */}
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Picked Status</label>
+                                        <div className="flex flex-col gap-2">
+                                            {filterOptions.statuses.map(s => (
+                                                <button
+                                                    key={s}
+                                                    onClick={() => setHUStatusFilter(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}
+                                                    className={cn(
+                                                        "flex items-center justify-between px-4 py-3 text-[11px] font-bold uppercase rounded-xl transition-all border",
+                                                        huStatusFilter.includes(s)
+                                                            ? "bg-blue-600/10 border-blue-500 text-blue-400 shadow-lg shadow-blue-500/5"
+                                                            : "bg-zinc-900/50 border-zinc-800/50 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                                                    )}
+                                                >
+                                                    {s}
+                                                    {huStatusFilter.includes(s) && <CheckCircle2 className="w-3.5 h-3.5" />}
+                                                </button>
                                             ))}
-                                        </TableBody>
-                                    </Table>
-                                )}
+                                        </div>
+                                    </div>
+
+                                    {/* Grouped Section */}
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Group Status</label>
+                                        <div className="flex flex-col gap-2">
+                                            {filterOptions.grouped.map(g => (
+                                                <button
+                                                    key={g}
+                                                    onClick={() => setHUGroupedFilter(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])}
+                                                    className={cn(
+                                                        "flex items-center justify-between px-4 py-3 text-[11px] font-bold uppercase rounded-xl transition-all border",
+                                                        huGroupedFilter.includes(g)
+                                                            ? "bg-emerald-600/10 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/5"
+                                                            : "bg-zinc-900/50 border-zinc-800/50 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                                                    )}
+                                                >
+                                                    {g === 'OK' ? 'Grouped (OK)' : 'Not Grouped'}
+                                                    {huGroupedFilter.includes(g) && <CheckCircle2 className="w-3.5 h-3.5" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Pick Initiated Section */}
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Pick Initiated</label>
+                                        <div className="flex flex-col gap-2">
+                                            {(["Has Value", "Empty"] as const).map(opt => (
+                                                <button
+                                                    key={opt}
+                                                    onClick={() => setHUPickInitiatedFilter(prev => prev.includes(opt) ? prev.filter(x => x !== opt) : [...prev, opt])}
+                                                    className={cn(
+                                                        "flex items-center justify-between px-4 py-3 text-[11px] font-bold uppercase rounded-xl transition-all border",
+                                                        huPickInitiatedFilter.includes(opt)
+                                                            ? opt === 'Empty'
+                                                                ? "bg-orange-600/10 border-orange-500 text-orange-400 shadow-lg shadow-orange-500/5"
+                                                                : "bg-sky-600/10 border-sky-500 text-sky-400 shadow-lg shadow-sky-500/5"
+                                                            : "bg-zinc-900/50 border-zinc-800/50 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                                                    )}
+                                                >
+                                                    {opt === 'Empty' ? 'No user (empty)' : 'Has user'}
+                                                    {huPickInitiatedFilter.includes(opt) && <CheckCircle2 className="w-3.5 h-3.5" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Priority Section */}
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Priority Level</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {filterOptions.priorities.map(p => (
+                                                <button
+                                                    key={p}
+                                                    onClick={() => setHUPriorityFilter(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
+                                                    className={cn(
+                                                        "px-3 py-2.5 text-[11px] font-bold uppercase rounded-xl transition-all border text-center",
+                                                        huPriorityFilter.includes(p)
+                                                            ? (p === '10' ? "bg-red-600/10 border-red-500 text-red-500" : "bg-zinc-600/20 border-zinc-500 text-zinc-300")
+                                                            : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:text-white"
+                                                    )}
+                                                >
+                                                    DP{p}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Floor Section (CVNS only) */}
+                                    {type === 'cvns' && filterOptions.huFloors.length > 0 && (
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Floor Level</label>
+                                            <div className="flex flex-col gap-2">
+                                                {filterOptions.huFloors.map(f => (
+                                                    <button
+                                                        key={f}
+                                                        onClick={() => setHUFloorFilter(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f])}
+                                                        className={cn(
+                                                            "px-4 py-3 text-[11px] font-bold uppercase rounded-xl transition-all border text-left",
+                                                            huFloorFilter.includes(f)
+                                                                ? "bg-amber-600/10 border-amber-500 text-amber-500"
+                                                                : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:text-white"
+                                                        )}
+                                                    >
+                                                        {f.replace('_', ' ')}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Cutoff Section */}
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Cutoff Window</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {filterOptions.cutoffs.map(c => (
+                                                <button
+                                                    key={c}
+                                                    onClick={() => setHUCutoffFilter(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])}
+                                                    className={cn(
+                                                        "px-2 py-2.5 text-[10px] font-bold rounded-xl transition-all border text-center font-mono",
+                                                        huCutoffFilter.includes(c)
+                                                            ? "bg-indigo-600/10 border-indigo-500 text-indigo-400"
+                                                            : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:text-white"
+                                                    )}
+                                                >
+                                                    {c}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-auto pt-6 border-t border-zinc-900/50">
+                                        <button
+                                            onClick={() => {
+                                                setHUSearchQuery("");
+                                                setHUPriorityFilter([]);
+                                                setHUFloorFilter([]);
+                                                setHUCutoffFilter([]);
+                                                setHUStatusFilter([]);
+                                                setHUGroupedFilter([]);
+                                                setHUPickInitiatedFilter([]);
+                                            }}
+                                            className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-zinc-900/60 border border-zinc-800 text-[11px] font-black uppercase text-zinc-500 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/30 transition-all active:scale-95"
+                                        >
+                                            <Zap className="w-3.5 h-3.5" />
+                                            Reset Filters
+                                        </button>
+                                    </div>
+                                </aside>
+
+                                {/* Main Table Content Section */}
+                                <div className="flex-1 flex flex-col min-w-0 bg-black/20" style={{ overflow: 'hidden' }}>
+                                    <div className="flex-1" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
+                                        {huLoading ? (
+                                            <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-4 py-20">
+                                                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-10 h-10 border-2 border-zinc-900 border-t-blue-500 rounded-full" />
+                                                <span className="text-sm font-bold uppercase tracking-widest">Loading Detail...</span>
+                                            </div>
+                                        ) : (
+                                            <Table>
+                                                <TableHeader className="sticky top-0 z-10 bg-zinc-950 border-b border-zinc-900 shadow-lg">
+                                                    <TableRow className="border-none hover:bg-transparent">
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 pl-8">Handling Unit</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Delivery</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Grouped</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Group ID</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Prio</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Cutoff</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Pick Initiated</TableHead>
+                                                        {type !== 'ms' && <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Floor</TableHead>}
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Status</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-right pr-8">Lns / Itm</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {displayDetailedHU.length > 0 ? (
+                                                        displayDetailedHU.map((hu: any, i: number) => (
+                                                            <TableRow key={i} className="border-zinc-900/30 hover:bg-white/[0.01] transition-colors border-b">
+                                                                <TableCell className="pl-8 py-4 font-mono text-sm font-black text-blue-500">{hu.EXIDV}</TableCell>
+                                                                <TableCell className="text-center font-mono text-xs text-zinc-400">{hu.VBELN}</TableCell>
+                                                                <TableCell className="text-center">
+                                                                    {hu.GROUPED === 'OK' ? (
+                                                                        <div className="flex items-center justify-center gap-1.5" title="Found in Priority Group">
+                                                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                                                            <span className="text-[9px] font-black uppercase text-emerald-500">Grouped</span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="flex items-center justify-center gap-1.5" title="Not in Priority Group">
+                                                                            <Circle className="w-3.5 h-3.5 text-zinc-700" />
+                                                                            <span className="text-[9px] font-black uppercase text-zinc-700">—</span>
+                                                                        </div>
+                                                                    )}
+                                                                </TableCell>
+                                                                <TableCell className="text-center font-mono text-[10px] text-zinc-500">
+                                                                    {hu.ZEXIDVGRP || '-'}
+                                                                </TableCell>
+                                                                <TableCell className="text-center">
+                                                                    <span className={cn("px-2 py-0.5 rounded text-[10px] font-black uppercase", hu.LPRIO == '10' ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-zinc-800/50 text-zinc-500 border border-zinc-700/30")}>
+                                                                        {hu.LPRIO}
+                                                                    </span>
+                                                                </TableCell>
+                                                                <TableCell className="text-center font-mono text-xs text-zinc-400">
+                                                                    {hu.WAUHR?.includes(' ') ? hu.WAUHR.split(' ')[1]?.substring(0, 5) : hu.WAUHR?.substring(0, 5)}
+                                                                </TableCell>
+                                                                <TableCell className="text-center font-mono text-[10px] text-zinc-500">
+                                                                    {hu.PICKINIUSER || '-'}
+                                                                </TableCell>
+                                                                {type !== 'ms' && (
+                                                                    <TableCell className="text-center">
+                                                                        <span className="text-[10px] uppercase font-black text-zinc-600">
+                                                                            {hu.FLOOR?.replace('_', ' ')}
+                                                                        </span>
+                                                                    </TableCell>
+                                                                )}
+                                                                <TableCell className="text-center">
+                                                                    {hu.IS_PICKED ? (
+                                                                        <span className="flex items-center justify-center gap-1.5 text-emerald-500 font-black text-[10px] uppercase">
+                                                                            <CheckCircle2 className="w-3.5 h-3.5" /> Picked
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="flex items-center justify-center gap-1.5 text-zinc-600 font-black text-[10px] uppercase">
+                                                                            <Circle className="w-3.5 h-3.5" /> Pending
+                                                                        </span>
+                                                                    )}
+                                                                </TableCell>
+                                                                <TableCell className="text-right pr-8 font-mono text-xs font-bold text-zinc-300">
+                                                                    {Math.round(hu.LINES_PER_HU)} <span className="opacity-40">/</span> {Math.round(hu.ITEMS_PER_HU)}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell colSpan={10} className="h-64 text-center text-zinc-600 font-medium font-mono text-xs uppercase tracking-widest leading-relaxed">
+                                                                {huSearchQuery || huPriorityFilter.length > 0 ? "No active HUs match your filters" : "All units processed for this sector"}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     </div>

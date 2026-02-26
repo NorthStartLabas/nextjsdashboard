@@ -26,7 +26,7 @@ export default function PackingMonitor({ title, type }: { title: any, type: any 
     const [searchQuery, setSearchQuery] = useState("");
     const [lastRefreshed, setLastRefreshed] = useState("");
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'BOXES_PACKED', direction: 'desc' });
-    const [selectedUser, setSelectedUser] = useState<string | null>(null);
+    const [selectedUser, setSelectedUser] = useState<string | null>(null); // format: "QNAME__FLOOR"
 
     const fetchData = async () => {
         try {
@@ -246,11 +246,12 @@ export default function PackingMonitor({ title, type }: { title: any, type: any 
 
     const userHourlyData = useMemo(() => {
         if (!selectedUser) return [];
+        const [selectedQname, selectedFloor] = selectedUser.split('__');
         return data.hourly
             .filter((row: any) =>
-                row.QNAME === selectedUser &&
-                row.FLOW === activeFlow &&
-                selectedFloors.includes(row.FLOOR)
+                row.QNAME === selectedQname &&
+                row.FLOOR === selectedFloor &&
+                row.FLOW === activeFlow
             )
             .map(row => ({
                 ...row,
@@ -259,7 +260,7 @@ export default function PackingMonitor({ title, type }: { title: any, type: any 
                 BOXES_PACKED: parseInt(row.BOXES_PACKED) || 0
             }))
             .sort((a: any, b: any) => a.HOUR - b.HOUR);
-    }, [data.hourly, selectedUser, activeFlow, selectedFloors]);
+    }, [data.hourly, selectedUser, activeFlow]);
 
     const activityMetrics = useMemo(() => {
         const now = new Date();
@@ -519,20 +520,20 @@ export default function PackingMonitor({ title, type }: { title: any, type: any 
                                                 transition={{ duration: 0.2 }}
                                                 className={cn(
                                                     "group cursor-pointer border-b border-zinc-800/20 transition-colors",
-                                                    selectedUser === row.QNAME ? "bg-white/5" : "hover:bg-zinc-800/30"
+                                                    selectedUser === `${row.QNAME}__${row.FLOOR}` ? "bg-white/5" : "hover:bg-zinc-800/30"
                                                 )}
-                                                onClick={() => setSelectedUser(selectedUser === row.QNAME ? null : row.QNAME)}
+                                                onClick={() => { const key = `${row.QNAME}__${row.FLOOR}`; setSelectedUser(selectedUser === key ? null : key); }}
                                             >
                                                 <TableCell className="py-4 pl-6">
                                                     <div className="flex items-center gap-4">
                                                         <div className="relative">
                                                             <div className={cn(
                                                                 "p-2 rounded-xl border transition-all duration-300",
-                                                                selectedUser === row.QNAME ? "bg-blue-500/20 border-blue-500/50 scale-110 shadow-[0_0_15px_rgba(59,130,246,0.2)]" : "bg-zinc-900/50 border-zinc-800 group-hover:border-zinc-700"
+                                                                selectedUser === `${row.QNAME}__${row.FLOOR}` ? "bg-blue-500/20 border-blue-500/50 scale-110 shadow-[0_0_15px_rgba(59,130,246,0.2)]" : "bg-zinc-900/50 border-zinc-800 group-hover:border-zinc-700"
                                                             )}>
                                                                 <User className={cn(
                                                                     "w-4 h-4 transition-colors",
-                                                                    selectedUser === row.QNAME ? "text-blue-400" : "text-zinc-500 group-hover:text-zinc-400"
+                                                                    selectedUser === `${row.QNAME}__${row.FLOOR}` ? "text-blue-400" : "text-zinc-500 group-hover:text-zinc-400"
                                                                 )} />
                                                             </div>
                                                             <div className={cn(
@@ -558,7 +559,7 @@ export default function PackingMonitor({ title, type }: { title: any, type: any 
                                                             </div>
                                                         </div>
                                                         <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            {selectedUser === row.QNAME ? (
+                                                            {selectedUser === `${row.QNAME}__${row.FLOOR}` ? (
                                                                 <ChevronDown className="w-4 h-4 text-blue-400" />
                                                             ) : (
                                                                 <ChevronRight className="w-4 h-4 text-zinc-600" />
@@ -590,7 +591,7 @@ export default function PackingMonitor({ title, type }: { title: any, type: any 
                                             </motion.tr>
 
                                             <AnimatePresence>
-                                                {selectedUser === row.QNAME && (
+                                                {selectedUser === `${row.QNAME}__${row.FLOOR}` && (
                                                     <motion.tr
                                                         initial={{ opacity: 0, height: 0 }}
                                                         animate={{ opacity: 1, height: "auto" }}

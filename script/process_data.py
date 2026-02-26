@@ -143,7 +143,7 @@ def main():
                     vbeln_chunks = [unique_vbeln_list[i:i + 1000] for i in range(0, len(unique_vbeln_list), 1000)]
                     
                     ltap_dashboard_rows = []
-                    ltap_cols = ['LGNUM', 'VBELN', 'VLPLA', 'VLTYP', 'NLPLA', 'QDATU', 'KOBER', 'UMREZ', 'BRGEW', 'VOLUM']
+                    ltap_cols = ['LGNUM', 'VBELN', 'VLPLA', 'VLTYP', 'NLPLA', 'QDATU', 'KOBER', 'UMREZ', 'BRGEW', 'VOLUM', 'TANUM']
                     
                     for chunk in vbeln_chunks:
                         chunk_str = ", ".join([f"'{v}'" for v in chunk])
@@ -165,18 +165,39 @@ def main():
                     for chunk in vbeln_chunks:
                         chunk_str = ", ".join([f"'{v}'" for v in chunk])
                         hu_query = f"""
-                        SELECT VBELN, EXIDV
+                        SELECT VBELN, EXIDV, VLTYP, TANUM
                         FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HU_TO_LINK
                         WHERE VBELN IN ({chunk_str})
                         UNION
-                        SELECT VBELN, EXIDV
+                        SELECT VBELN, EXIDV, VLTYP, TANUM
                         FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HUTO_LNKHIS
                         WHERE VBELN IN ({chunk_str})
                         """
                         cur.execute(hu_query)
                         hu_dashboard_rows.extend(cur.fetchall())
-                    df_hu_dash = pd.DataFrame(hu_dashboard_rows, columns=['VBELN', 'EXIDV'])
+                    df_hu_dash = pd.DataFrame(hu_dashboard_rows, columns=['VBELN', 'EXIDV', 'VLTYP', 'TANUM'])
                     df_hu_dash['VBELN'] = df_hu_dash['VBELN'].astype(str).str.strip().str.lstrip('0')
+                    df_hu_dash['TANUM'] = df_hu_dash['TANUM'].astype(str).str.strip()
+                    
+                    # --- HU PRIORITY GROUP EXTRACTION ---
+                    hu_list = df_hu_dash['EXIDV'].unique()
+                    df_prio_grp = pd.DataFrame(columns=['EXIDV', 'ZEXIDVGRP', 'PICKINIUSER'])
+                    if len(hu_list) > 0:
+                        hu_chunks = [hu_list[i:i + 1000] for i in range(0, len(hu_list), 1000)]
+                        prio_grp_rows = []
+                        for chunk in hu_chunks:
+                            # Pad to 20 digits so Snowflake matches the full barcode in ZORF_HU_PRIOGRP
+                            chunk_str = ", ".join([f"'{str(v).strip().zfill(20)}'" for v in chunk])
+                            prio_grp_query = f"""
+                            SELECT EXIDV, ZEXIDVGRP, PICKINIUSER 
+                            FROM PROD_CDH_DB.SDS_MAIN.SDS_CP_ZORF_HU_PRIOGRP 
+                            WHERE EXIDV IN ({chunk_str})
+                            """
+                            cur.execute(prio_grp_query)
+                            prio_grp_rows.extend(cur.fetchall())
+                        if prio_grp_rows:
+                            df_prio_grp = pd.DataFrame(prio_grp_rows, columns=['EXIDV', 'ZEXIDVGRP', 'PICKINIUSER'])
+                            df_prio_grp['EXIDV'] = df_prio_grp['EXIDV'].astype(str).str.strip()
                     
                     # Convert numeric columns
                     for col in ['UMREZ', 'BRGEW', 'VOLUM']:
@@ -208,7 +229,8 @@ def main():
                             ms_starts = ['B', 'C', 'D', 'V', 'E']
                             def filter_ms_local(row):
                                 v = str(row['VLPLA']) if row['VLPLA'] else ""
-                                return any(v.startswith(s) for s in ms_starts) and row['VLTYP'] != 'REP'
+                                vltyp = str(row['VLTYP']) if row['VLTYP'] else ""
+                                return any(v.startswith(s) for s in ms_starts) and vltyp != 'REP'
                             df_ltap_dept = df_ltap_dept[df_ltap_dept.apply(filter_ms_local, axis=1)]
 
                         # Metrics helper
@@ -249,10 +271,39 @@ def main():
                             how='left'
                         )
                         
-                        # Calculate picking status per VBELN (delivery level)
-                        # We use this as a proxy for HU picking status if item-level mapping isn't clear
-                        vbeln_picking_status = df_ltap_dept.groupby('VBELN')['QDATU'].apply(lambda x: x.notnull().all()).to_dict()
-                        df_hu_merged['IS_PICKED'] = df_hu_merged['VBELN'].map(vbeln_picking_status).fillna(False)
+                        # Merge with HU Priority Group info
+                        if not df_prio_grp.empty:
+                            df_hu_merged['EXIDV_STR'] = df_hu_merged['EXIDV'].astype(str).str.strip().str.zfill(20)
+                            df_hu_merged = pd.merge(df_hu_merged, df_prio_grp, left_on='EXIDV_STR', right_on='EXIDV', how='left', suffixes=('', '_prio'))
+                            df_hu_merged['GROUPED'] = df_hu_merged['ZEXIDVGRP'].notnull().map({True: 'OK', False: 'NOT OK'})
+                            if 'EXIDV_prio' in df_hu_merged.columns:
+                                df_hu_merged = df_hu_merged.drop(columns=['EXIDV_prio', 'EXIDV_STR'])
+                        else:
+                            df_hu_merged['GROUPED'] = 'NOT OK'
+                            df_hu_merged['ZEXIDVGRP'] = None
+                            df_hu_merged['PICKINIUSER'] = None
+                        
+                        # Add FLOOR mapping for HUs
+                        df_hu_merged['FLOOR'] = df_hu_merged['VLTYP'].map(lambda x: FLOOR_MAPPING.get(str(x), 'unknown_floor'))
+                        
+                        # Calculate picking status per EXIDV (individual box) via TANUM.
+                        # ZORF_HU_TO_LINK.TANUM = LTAP.TANUM links each Transfer Order to its HU.
+                        # A box is only marked Picked when ALL of its own LTAP lines have QDATU set.
+                        df_ltap_tanum = df_ltap_dash[['TANUM', 'QDATU']].copy()
+                        df_ltap_tanum['TANUM'] = df_ltap_tanum['TANUM'].astype(str).str.strip()
+                        
+                        df_hu_tanum = df_hu_dash[['EXIDV', 'TANUM', 'VBELN']].copy()
+                        df_hu_tanum = df_hu_tanum[df_hu_tanum['VBELN'].isin(df_likp_dept['VBELN'])]
+                        
+                        # Join LTAP lines → HUs via TANUM
+                        df_ltap_hu_join = pd.merge(df_ltap_tanum, df_hu_tanum[['EXIDV', 'TANUM']], on='TANUM', how='inner')
+                        
+                        if not df_ltap_hu_join.empty:
+                            exidv_pick_status = df_ltap_hu_join.groupby('EXIDV')['QDATU'].apply(lambda x: x.notnull().all()).to_dict()
+                        else:
+                            exidv_pick_status = {}
+                        
+                        df_hu_merged['IS_PICKED'] = df_hu_merged['EXIDV'].map(exidv_pick_status).fillna(False)
 
                         # priority count from LTAP (Lines instead of Deliveries)
                         # Normalize LPRIO for consistent grouping
@@ -362,7 +413,7 @@ def main():
 
                         # --- DETAILED LINES EXPORT ---
                         lines_filename = filename.replace('dashboard_data_', 'dashboard_lines_')
-                        export_cols = ['VBELN', 'LPRIO', 'WAUHR', 'VLPLA', 'VLTYP', 'KOBER', 'UMREZ', 'BRGEW', 'VOLUM']
+                        export_cols = ['VBELN', 'LPRIO', 'WAUHR', 'VLPLA', 'VLTYP', 'KOBER', 'UMREZ', 'BRGEW', 'VOLUM', 'QDATU']
                         if 'FLOOR' in df_ltap_merged.columns:
                             export_cols.append('FLOOR')
                         
@@ -399,10 +450,16 @@ def main():
                         hu_stats_merged['ITEMS_PER_HU'] = (hu_stats_merged['ITEMS_COUNT'] / hu_stats_merged['HU_PER_DELIV']).round(2)
                         
                         # Prepare export columns
-                        hu_export_cols = ['EXIDV', 'VBELN', 'LPRIO', 'WAUHR', 'IS_PICKED', 'LINES_PER_HU', 'ITEMS_PER_HU']
+                        hu_export_cols = ['EXIDV', 'VBELN', 'LPRIO', 'WAUHR', 'IS_PICKED', 'LINES_PER_HU', 'ITEMS_PER_HU', 'FLOOR', 'GROUPED', 'ZEXIDVGRP', 'PICKINIUSER']
+                        # Ensure all columns exist 
+                        for col in hu_export_cols:
+                            if col not in hu_stats_merged.columns:
+                                hu_stats_merged[col] = None
+                                
                         df_hu_export = hu_stats_merged[hu_export_cols].copy()
                         df_hu_export['LPRIO'] = df_hu_export['LPRIO'].astype(str)
                         df_hu_export['WAUHR'] = df_hu_export['WAUHR'].astype(str)
+                        df_hu_export['FLOOR'] = df_hu_export['FLOOR'].astype(str)
                         
                         df_hu_export.to_json(os.path.join(output_dir, hu_export_filename), orient='records', indent=4)
                         print(f"Generated {hu_export_filename}")
@@ -462,26 +519,7 @@ def main():
         df_ms = df_ms[df_ms.apply(filter_ms, axis=1)]
 
         df_ltap_filtered = pd.concat([df_ms, df_cvns])
-        
-    def filter_cvns(row):
-        vlpla = str(row['VLPLA']) if row['VLPLA'] else ""
-        if not any(vlpla.startswith(s) for s in cvns_vlpla_starts):
-            return False
-        if any(vlpla.startswith(s) for s in cvns_vlpla_not_starts):
-            return False
-        return True
 
-    def filter_ms(row):
-        vlpla = str(row['VLPLA']) if row['VLPLA'] else ""
-        return any(vlpla.startswith(s) for s in ms_vlpla_starts)
-        
-    df_cvns = df_ltap[df_ltap['LGNUM'] == '266']
-    df_cvns = df_cvns[df_cvns.apply(filter_cvns, axis=1)]
-
-    df_ms = df_ltap[df_ltap['LGNUM'] == '245']
-    df_ms = df_ms[df_ms.apply(filter_ms, axis=1)]
-
-    df_ltap_filtered = pd.concat([df_ms, df_cvns])
     if df_ltap_filtered.empty:
         print("No valid picking rows remains after VLPLA filtering. Skipping picking stats.")
         df_routes_db = pd.DataFrame(columns=['VBELN', 'ROUTE'])

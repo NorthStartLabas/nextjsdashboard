@@ -11,13 +11,15 @@ export async function runPythonScript(customDate = null) {
 
     isRunning = true;
     const startTime = Date.now();
+    const isScheduled = customDate === 'cron';
+    const actualDate = isScheduled ? null : customDate;
 
     return new Promise((resolve) => {
         const scriptDir = path.join(process.cwd(), '..', 'script');
         // Use python3 on Mac, and check if we should use the venv if it exists
-        const pythonCmd = 'python3';
-        const command = customDate
-            ? `${pythonCmd} process_data.py --date ${customDate}`
+        const pythonCmd = 'python';
+        const command = actualDate
+            ? `${pythonCmd} process_data.py --date ${actualDate}`
             : `${pythonCmd} process_data.py`;
 
         exec(command, { cwd: scriptDir }, (error, stdout, stderr) => {
@@ -32,7 +34,7 @@ export async function runPythonScript(customDate = null) {
                 success: !error,
                 output: stdout,
                 error: error ? error.message : (stderr || null),
-                type: customDate ? 'manual_custom_date' : 'manual_today'
+                type: isScheduled ? 'scheduled' : (customDate ? 'manual_custom_date' : 'manual_today')
             };
 
             addRunLog(runLog);
@@ -45,6 +47,7 @@ export async function runPythonScript(customDate = null) {
         });
     });
 }
+
 
 export async function runUserStatsScript(qname, lgnum, activity = 'picking') {
     const startTime = Date.now();

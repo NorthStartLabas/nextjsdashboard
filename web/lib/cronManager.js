@@ -2,8 +2,23 @@ import cron from 'node-cron';
 import { getStore, saveStore, addRunLog } from './store';
 import { runPythonScript } from './scriptRunner';
 
-// Keep track of active cron tasks in memory
-const activeCronJobs = new Map();
+// Use global object to survive HMR/Hot Reloads in development
+if (!global._cronManager) {
+    global._cronManager = {
+        activeJobs: new Map(),
+        isInitialized: false
+    };
+}
+
+const activeCronJobs = global._cronManager.activeJobs;
+
+export function ensureCronInitialized() {
+    if (global._cronManager.isInitialized) return;
+    console.log("Initializing CRON manager...");
+    syncCronJobs();
+    global._cronManager.isInitialized = true;
+}
+
 
 export function scheduleJob(id, expression) {
     if (activeCronJobs.has(id)) {
@@ -18,7 +33,8 @@ export function scheduleJob(id, expression) {
 
     const task = cron.schedule(expression, async () => {
         console.log(`Running scheduled job: ${id}`);
-        const result = await runPythonScript(null); // Cron always runs for today
+        // Pass 'cron' as a flag to indicate this is an automated run
+        const result = await runPythonScript('cron');
 
         // Check if store needs to update the lastRun time for this job
         const store = getStore();
@@ -44,13 +60,27 @@ export function unscheduleJob(id) {
 export function syncCronJobs() {
     const store = getStore();
 
-    // Clear all existing
+    console.log("Syncing CRON jobs. Current active count in memory:", activeCronJobs.size);
+
+    // 1. Clear our tracked Map
     for (const [id, task] of activeCronJobs.entries()) {
         task.stop();
     }
     activeCronJobs.clear();
 
-    // Schedule active ones
+    // 2. Aggressive cleanup: Stop ANY tasks node-cron might be holding 
+    // This handles "ghost" tasks from previous module instances during HMR
+    try {
+        const allTasks = cron.getTasks();
+        console.log(`Aggressive cleanup: Found ${allTasks.length} total tasks in node-cron registry. Stopping all.`);
+        allTasks.forEach(task => {
+            if (typeof task.stop === 'function') task.stop();
+        });
+    } catch (e) {
+        console.error("Error during aggressive cron cleanup:", e);
+    }
+
+    // 3. Schedule active ones from store
     store.cronJobs.forEach(job => {
         if (job.isActive) {
             try {
@@ -61,5 +91,7 @@ export function syncCronJobs() {
         }
     });
 
-    console.log(`Synced ${activeCronJobs.size} cron jobs from store.`);
+    console.log(`Sync complete. Now running ${activeCronJobs.size} active jobs.`);
 }
+
+

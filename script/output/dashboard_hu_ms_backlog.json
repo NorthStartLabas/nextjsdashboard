@@ -1,57 +1,16 @@
 [
     {
-        "EXIDV":"00206739781145742451",
-        "VBELN":"1470094279",
+        "EXIDV":"00206739781120170774",
+        "VBELN":"1465967099",
         "LPRIO":"30",
-        "WAUHR":"2026-02-25 23:59:00",
+        "WAUHR":"2025-12-05 19:29:59",
         "IS_PICKED":true,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":10.0
-    },
-    {
-        "EXIDV":"00206739781145779853",
-        "VBELN":"1470135386",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":6.0
-    },
-    {
-        "EXIDV":"00206739781145292833",
-        "VBELN":"1470044091",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 20:59:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":3.0,
-        "ITEMS_PER_HU":3.0
-    },
-    {
-        "EXIDV":"00206739781145779860",
-        "VBELN":"1470135388",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 20:59:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":1.0
-    },
-    {
-        "EXIDV":"00206739781142685744",
-        "VBELN":"1469666600",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-18 16:29:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":8.0,
-        "ITEMS_PER_HU":8.0
-    },
-    {
-        "EXIDV":"00206739781145753976",
-        "VBELN":"1470043897",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-24 23:59:00",
-        "IS_PICKED":true,
-        "LINES_PER_HU":5.0,
-        "ITEMS_PER_HU":5.0
+        "LINES_PER_HU":1.5,
+        "ITEMS_PER_HU":15.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6014764938",
+        "PICKINIUSER":"STRYZA2"
     },
     {
         "EXIDV":"00206739781143182198",
@@ -60,214 +19,11 @@
         "WAUHR":"2026-02-19 20:59:59",
         "IS_PICKED":false,
         "LINES_PER_HU":2.0,
-        "ITEMS_PER_HU":20.0
-    },
-    {
-        "EXIDV":"00206739781145761391",
-        "VBELN":"1470115085",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 20:59:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":6.0
-    },
-    {
-        "EXIDV":"00206739781145779846",
-        "VBELN":"1470119325",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":6.0
-    },
-    {
-        "EXIDV":"00206739781059261772",
-        "VBELN":"1455548995",
-        "LPRIO":"30",
-        "WAUHR":"2025-05-20 20:59:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":3.0,
-        "ITEMS_PER_HU":300.0
-    },
-    {
-        "EXIDV":"00206739781142685737",
-        "VBELN":"1469636552",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-18 16:29:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":2.0,
-        "ITEMS_PER_HU":2.0
-    },
-    {
-        "EXIDV":"00206739781145761407",
-        "VBELN":"1470134489",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 20:59:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":6.0
-    },
-    {
-        "EXIDV":"00206739781059264445",
-        "VBELN":"1455549232",
-        "LPRIO":"30",
-        "WAUHR":"2025-05-20 20:59:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":15.0
-    },
-    {
-        "EXIDV":"00206739781137658395",
-        "VBELN":"1468855779",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-03 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":3.0,
-        "ITEMS_PER_HU":8.0
-    },
-    {
-        "EXIDV":"00206739781145752733",
-        "VBELN":"1470094312",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 23:59:00",
-        "IS_PICKED":true,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":10.0
-    },
-    {
-        "EXIDV":"00206739781145431997",
-        "VBELN":"1470089637",
-        "LPRIO":"10",
-        "WAUHR":"2026-02-25 19:29:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":2.0,
-        "ITEMS_PER_HU":2.0
-    },
-    {
-        "EXIDV":"00206739781135784096",
-        "VBELN":"1468555980",
-        "LPRIO":"30",
-        "WAUHR":"2026-01-26 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":6.0
-    },
-    {
-        "EXIDV":"00206739781145742499",
-        "VBELN":"1470041004",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-24 23:59:00",
-        "IS_PICKED":true,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":10.0
-    },
-    {
-        "EXIDV":"00206739781145773103",
-        "VBELN":"1470117250",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 18:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":50.0
-    },
-    {
-        "EXIDV":"00206739781139475624",
-        "VBELN":"1469098059",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-06 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":12.0
-    },
-    {
-        "EXIDV":"00206739781120170767",
-        "VBELN":"1465967099",
-        "LPRIO":"30",
-        "WAUHR":"2025-12-05 19:29:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":1.5,
-        "ITEMS_PER_HU":15.0
-    },
-    {
-        "EXIDV":"00206739781145889132",
-        "VBELN":"1469509912",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-16 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":100.0
-    },
-    {
-        "EXIDV":"00206739781120170774",
-        "VBELN":"1465967099",
-        "LPRIO":"30",
-        "WAUHR":"2025-12-05 19:29:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":1.5,
-        "ITEMS_PER_HU":15.0
-    },
-    {
-        "EXIDV":"00206739781139475617",
-        "VBELN":"1469098059",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-06 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":12.0
-    },
-    {
-        "EXIDV":"00206739781139475631",
-        "VBELN":"1469098059",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-06 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":12.0
-    },
-    {
-        "EXIDV":"00206739781139478847",
-        "VBELN":"1469160208",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-06 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":3.0,
-        "ITEMS_PER_HU":45.0
-    },
-    {
-        "EXIDV":"00206739781145752849",
-        "VBELN":"1470134079",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 23:59:00",
-        "IS_PICKED":true,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":10.0
-    },
-    {
-        "EXIDV":"00206739781145292826",
-        "VBELN":"1470044091",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-25 20:59:59",
-        "IS_PICKED":true,
-        "LINES_PER_HU":3.0,
-        "ITEMS_PER_HU":3.0
-    },
-    {
-        "EXIDV":"00206739781142743123",
-        "VBELN":"1469657714",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-18 20:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":1.0
-    },
-    {
-        "EXIDV":"00206739781139467902",
-        "VBELN":"1469077996",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-06 23:59:00",
-        "IS_PICKED":false,
-        "LINES_PER_HU":2.0,
-        "ITEMS_PER_HU":18.0
+        "ITEMS_PER_HU":20.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015222670",
+        "PICKINIUSER":"VOROSK2"
     },
     {
         "EXIDV":"00206739781142193621",
@@ -276,7 +32,50 @@
         "WAUHR":"2026-02-17 19:59:59",
         "IS_PICKED":false,
         "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":12.0
+        "ITEMS_PER_HU":12.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015201638",
+        "PICKINIUSER":"STRYZA2"
+    },
+    {
+        "EXIDV":"00206739781142685744",
+        "VBELN":"1469666600",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-18 16:29:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":8.0,
+        "ITEMS_PER_HU":8.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015209830",
+        "PICKINIUSER":"PALUNI2"
+    },
+    {
+        "EXIDV":"00206739781139467902",
+        "VBELN":"1469077996",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-06 23:59:00",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":9.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015152337",
+        "PICKINIUSER":null
+    },
+    {
+        "EXIDV":"00206739781139475624",
+        "VBELN":"1469098059",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-06 20:59:59",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":12.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015152338",
+        "PICKINIUSER":null
     },
     {
         "EXIDV":"00206739781120022257",
@@ -285,16 +84,11 @@
         "WAUHR":"2025-12-05 19:29:59",
         "IS_PICKED":true,
         "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":1.0
-    },
-    {
-        "EXIDV":"00206739781142193041",
-        "VBELN":"1469574369",
-        "LPRIO":"30",
-        "WAUHR":"2026-02-17 19:59:59",
-        "IS_PICKED":false,
-        "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":25.0
+        "ITEMS_PER_HU":1.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6014753612",
+        "PICKINIUSER":"HRLOUB105"
     },
     {
         "EXIDV":"00206739781142703738",
@@ -303,6 +97,244 @@
         "WAUHR":"2026-02-18 20:59:59",
         "IS_PICKED":true,
         "LINES_PER_HU":1.0,
-        "ITEMS_PER_HU":1.0
+        "ITEMS_PER_HU":1.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015210133",
+        "PICKINIUSER":"POLEHS2"
+    },
+    {
+        "EXIDV":"00206739781145292826",
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":1.5,
+        "ITEMS_PER_HU":1.5,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015260431",
+        "PICKINIUSER":"SOCHAE4"
+    },
+    {
+        "EXIDV":"00206739781139475617",
+        "VBELN":"1469098059",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-06 20:59:59",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":12.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015152338",
+        "PICKINIUSER":null
+    },
+    {
+        "EXIDV":"00206739781137658395",
+        "VBELN":"1468855779",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-03 20:59:59",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.5,
+        "ITEMS_PER_HU":4.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015119222",
+        "PICKINIUSER":"MOLENK3"
+    },
+    {
+        "EXIDV":"00206739781142685737",
+        "VBELN":"1469636552",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-18 16:29:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":1.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015209829",
+        "PICKINIUSER":"PALADM2"
+    },
+    {
+        "EXIDV":"00206739781142743123",
+        "VBELN":"1469657714",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-18 20:59:59",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":1.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015210997",
+        "PICKINIUSER":"IACOBC2"
+    },
+    {
+        "EXIDV":"00206739781059264445",
+        "VBELN":"1455549232",
+        "LPRIO":"30",
+        "WAUHR":"2025-05-20 20:59:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":15.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6013398896",
+        "PICKINIUSER":"CETERA2"
+    },
+    {
+        "EXIDV":"00206739781145292833",
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":1.5,
+        "ITEMS_PER_HU":1.5,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015260814",
+        "PICKINIUSER":"HAMERP2"
+    },
+    {
+        "EXIDV":"00206739781139475631",
+        "VBELN":"1469098059",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-06 20:59:59",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":12.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015152338",
+        "PICKINIUSER":null
+    },
+    {
+        "EXIDV":"00206739781135784096",
+        "VBELN":"1468555980",
+        "LPRIO":"30",
+        "WAUHR":"2026-01-26 20:59:59",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":6.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015078243",
+        "PICKINIUSER":"HRLOUB67"
+    },
+    {
+        "EXIDV":"00206739781137658395",
+        "VBELN":"1468855779",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-03 20:59:59",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.5,
+        "ITEMS_PER_HU":4.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015119222",
+        "PICKINIUSER":"MOLENK3"
+    },
+    {
+        "EXIDV":"00206739781142685737",
+        "VBELN":"1469636552",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-18 16:29:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":1.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015209829",
+        "PICKINIUSER":"PALADM2"
+    },
+    {
+        "EXIDV":"00206739781142193041",
+        "VBELN":"1469574369",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-17 19:59:59",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":25.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015201637",
+        "PICKINIUSER":"HRLOUB106"
+    },
+    {
+        "EXIDV":"00206739781145292833",
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":1.5,
+        "ITEMS_PER_HU":1.5,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015260814",
+        "PICKINIUSER":"HAMERP2"
+    },
+    {
+        "EXIDV":"00206739781120170767",
+        "VBELN":"1465967099",
+        "LPRIO":"30",
+        "WAUHR":"2025-12-05 19:29:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":1.5,
+        "ITEMS_PER_HU":15.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6014764570",
+        "PICKINIUSER":"WASILJ3"
+    },
+    {
+        "EXIDV":"00206739781059261772",
+        "VBELN":"1455548995",
+        "LPRIO":"30",
+        "WAUHR":"2025-05-20 20:59:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":3.0,
+        "ITEMS_PER_HU":300.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6013399300",
+        "PICKINIUSER":"HRLOUB241"
+    },
+    {
+        "EXIDV":"00206739781145292826",
+        "VBELN":"1470044091",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-25 20:59:59",
+        "IS_PICKED":true,
+        "LINES_PER_HU":1.5,
+        "ITEMS_PER_HU":1.5,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015260431",
+        "PICKINIUSER":"SOCHAE4"
+    },
+    {
+        "EXIDV":"00206739781139478847",
+        "VBELN":"1469160208",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-06 20:59:59",
+        "IS_PICKED":false,
+        "LINES_PER_HU":3.0,
+        "ITEMS_PER_HU":45.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015152338",
+        "PICKINIUSER":null
+    },
+    {
+        "EXIDV":"00206739781139467902",
+        "VBELN":"1469077996",
+        "LPRIO":"30",
+        "WAUHR":"2026-02-06 23:59:00",
+        "IS_PICKED":false,
+        "LINES_PER_HU":1.0,
+        "ITEMS_PER_HU":9.0,
+        "FLOOR":"unknown_floor",
+        "GROUPED":"OK",
+        "ZEXIDVGRP":"6015152337",
+        "PICKINIUSER":null
     }
 ]
