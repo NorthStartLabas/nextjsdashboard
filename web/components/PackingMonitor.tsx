@@ -5,16 +5,17 @@ import { format } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ComposedChart, Line } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Box, Layers, Users, Zap, Search, ClipboardList, Timer, Divide, Trophy, User, Activity, Clock, Circle, Package } from "lucide-react";
+import { ArrowRight, Box, Layers, Users, Zap, Search, ClipboardList, Timer, Divide, Trophy, User, Activity, Clock, Circle, HelpCircle, Download, ChevronDown, ChevronRight, Package } from "lucide-react";
+import { Fragment } from "react";
 
-export default function PackingMonitor({ title, type }: { title: string, type: 'ms' | 'cvns' }) {
-    const [data, setData] = useState({ daily: [], hourly: [] });
+export default function PackingMonitor({ title, type }: { title: any, type: any }) {
+    const [data, setData] = useState<{ daily: any[], hourly: any[] }>({ daily: [], hourly: [] });
     const [thresholds, setThresholds] = useState<any>(null);
     const [blacklist, setBlacklist] = useState<string[]>([]);
     const [userMappings, setUserMappings] = useState<Record<string, string>>({});
@@ -25,7 +26,6 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
     const [searchQuery, setSearchQuery] = useState("");
     const [lastRefreshed, setLastRefreshed] = useState("");
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'BOXES_PACKED', direction: 'desc' });
-
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
     const fetchData = async () => {
@@ -46,7 +46,7 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
             if (result.success) {
                 setData(result.data);
 
-                // Auto-select all available floors except unknown_floor
+                // Auto-select all available floors 
                 const allFloors = Array.from(new Set(result.data.daily.map((d: any) => d.FLOOR)))
                     .filter(Boolean)
                     .filter(f => f !== 'unknown_floor');
@@ -106,51 +106,108 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
             .sort();
     }, [data.daily]);
 
-    const filteredDaily = useMemo(() => {
-        let sorted = data.daily.filter((row: any) => {
-            // Filter by flow and floor
-            if (row.FLOW !== activeFlow || !selectedFloors.includes(row.FLOOR)) return false;
+    const handleExportCSV = () => {
+        if (!filteredDaily || filteredDaily.length === 0) return;
 
-            // MS Special: Exclude conveyor from table ONLY for B-flow
-            if (type === 'ms' && activeFlow === 'B-flow' && row.QNAME === 'WEBMREMOTEWS') return false;
+        const headers = ["Operator", "Username", "Floor", "Flow", "Boxes", "Effort (h)", "Performance"];
 
-            // Blacklist check
-            if (blacklist.includes(row.QNAME)) return false;
+        const rows = filteredDaily.map(row => [
+            userMappings[row.QNAME] || row.QNAME,
+            row.QNAME,
+            row.FLOOR.replace(/_/g, ' '),
+            row.FLOW,
+            row.BOXES_PACKED,
+            row.EFFORT,
+            row.PRODUCTIVITY
+        ]);
 
-            // Search query
-            const name = row.QNAME?.toLowerCase() || "";
-            const mapping = userMappings[row.QNAME]?.toLowerCase() || "";
-            const search = searchQuery.toLowerCase();
-            return name.includes(search) || mapping.includes(search);
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(r => r.join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Packing_Monitor_${type}_${activeFlow}_${format(new Date(), "yyyy-MM-dd")}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleExportUserCSV = (user: any) => {
+        const userHourly = data.hourly
+            .filter((row: any) =>
+                row.QNAME === user.QNAME &&
+                row.FLOW === activeFlow &&
+                selectedFloors.includes(row.FLOOR)
+            )
+            .sort((a, b) => a.HOUR - b.HOUR);
+
+        if (userHourly.length === 0) return;
+
+        const headers = ["Hour", "Operator", "Username", "Floor", "Flow", "Boxes", "Effort (h)", "Performance"];
+
+        const rows = userHourly.map(row => {
+            const prod = parseFloat(row.PRODUCTIVITY) || 0;
+            return [
+                `${String(row.HOUR).padStart(2, '0')}:00`,
+                userMappings[row.QNAME] || row.QNAME,
+                row.QNAME,
+                row.FLOOR.replace(/_/g, ' '),
+                row.FLOW,
+                row.BOXES_PACKED,
+                row.EFFORT,
+                prod
+            ];
         });
 
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(r => r.join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Packing_Monitor_${type}_${user.QNAME}_${format(new Date(), "yyyy-MM-dd")}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const filteredDaily = useMemo(() => {
+        let filtered = data.daily.filter((row: any) =>
+            row.FLOW === activeFlow &&
+            selectedFloors.includes(row.FLOOR) &&
+            !blacklist.includes(row.QNAME) &&
+            (type === 'ms' && activeFlow === 'B-flow' ? row.QNAME !== 'WEBMREMOTEWS' : true) &&
+            (row.QNAME?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (userMappings[row.QNAME]?.toLowerCase().includes(searchQuery.toLowerCase()) || false))
+        );
+
+        let processed = filtered.map(row => ({
+            ...row,
+            PRODUCTIVITY: parseFloat(row.PRODUCTIVITY) || 0,
+            EFFORT: parseFloat(row.EFFORT) || 0,
+            BOXES_PACKED: parseInt(row.BOXES_PACKED) || 0
+        }));
+
         if (sortConfig) {
-            sorted.sort((a: any, b: any) => {
-                let aVal, bVal;
-                switch (sortConfig.key) {
-                    case 'BOXES_PACKED':
-                        aVal = a.BOXES_PACKED;
-                        bVal = b.BOXES_PACKED;
-                        break;
-                    case 'EFFORT':
-                        aVal = parseFloat(a.EFFORT);
-                        bVal = parseFloat(b.EFFORT);
-                        break;
-                    case 'PRODUCTIVITY':
-                        aVal = parseFloat(a.PRODUCTIVITY);
-                        bVal = parseFloat(b.PRODUCTIVITY);
-                        break;
-                    default:
-                        aVal = 0;
-                        bVal = 0;
-                }
-                if (sortConfig.direction === 'asc') return aVal - bVal;
-                return bVal - aVal;
+            processed.sort((a, b) => {
+                let aVal = a[sortConfig.key];
+                let bVal = b[sortConfig.key];
+                if (sortConfig.direction === 'asc') return (aVal > bVal ? 1 : -1);
+                return (aVal < bVal ? 1 : -1);
             });
         }
 
-        return sorted;
-    }, [data.daily, activeFlow, selectedFloors, searchQuery, blacklist, userMappings, type, sortConfig]);
+        return processed;
+    }, [data.daily, activeFlow, selectedFloors, searchQuery, blacklist, userMappings, sortConfig, type]);
 
     const chartData = useMemo(() => {
         const hourlyFiltered = data.hourly.filter((row: any) => {
@@ -187,15 +244,20 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
         })).filter(d => d.boxes > 0 || d.users > 0);
     }, [data.hourly, activeFlow, selectedFloors, blacklist, type]);
 
-    const cascadeData = useMemo(() => {
+    const userHourlyData = useMemo(() => {
         if (!selectedUser) return [];
-
         return data.hourly
             .filter((row: any) =>
                 row.QNAME === selectedUser &&
                 row.FLOW === activeFlow &&
                 selectedFloors.includes(row.FLOOR)
             )
+            .map(row => ({
+                ...row,
+                PRODUCTIVITY: parseFloat(row.PRODUCTIVITY) || 0,
+                EFFORT: parseFloat(row.EFFORT) || 0,
+                BOXES_PACKED: parseInt(row.BOXES_PACKED) || 0
+            }))
             .sort((a: any, b: any) => a.HOUR - b.HOUR);
     }, [data.hourly, selectedUser, activeFlow, selectedFloors]);
 
@@ -241,38 +303,6 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
         };
     }, [data.hourly, filteredDaily, activeFlow, selectedFloors, blacklist, type]);
 
-    const getThresholdsForUser = (floor?: string) => {
-        const flowKey = `${type}_packing_${activeFlow.charAt(0)}`;
-        const specificKey = floor ? `${flowKey}_${floor}` : flowKey;
-        return thresholds?.[specificKey] || thresholds?.[flowKey] || { emerald: 100, blue: 60, orange: 40, red: 0 };
-    };
-
-    const getPerformanceBg = (score: number, floor?: string) => {
-        // Only show colors for CVNS B-flow
-        const isCVNSB = type === 'cvns' && activeFlow === 'B-flow';
-
-        if (!isCVNSB) return "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50";
-
-        const thresh = getThresholdsForUser(floor);
-        if (score >= thresh.emerald) return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-        if (score >= thresh.blue) return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
-        if (score >= thresh.orange) return "bg-orange-500/10 text-orange-400 border border-orange-500/20";
-        return "bg-red-500/10 text-red-500 border border-red-500/20";
-    };
-
-    const getPerformanceText = (score: number, floor?: string) => {
-        // Only show colors for CVNS B-flow
-        const isCVNSB = type === 'cvns' && activeFlow === 'B-flow';
-
-        if (!isCVNSB) return "text-zinc-300";
-
-        const thresh = getThresholdsForUser(floor);
-        if (score >= thresh.emerald) return "text-emerald-400";
-        if (score >= thresh.blue) return "text-blue-500";
-        if (score >= thresh.orange) return "text-orange-400";
-        return "text-red-500";
-    };
-
     if (loading) {
         return (
             <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center text-zinc-400">
@@ -286,16 +316,35 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
         );
     }
 
+    const getThresholdsForUser = (floor?: string) => {
+        const flowKey = `${type}_packing_${activeFlow.charAt(0)}`;
+        const specificKey = floor ? `${flowKey}_${floor}` : flowKey;
+        return thresholds?.[specificKey] || thresholds?.[flowKey] || { emerald: 100, blue: 60, orange: 40, red: 0 };
+    };
+
+    const getPerformanceBg = (score: number, floor?: string) => {
+        const isCVNSB = type === 'cvns' && activeFlow === 'B-flow';
+        if (!isCVNSB) return "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50";
+        const thresh = getThresholdsForUser(floor);
+        if (score >= thresh.emerald) return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+        if (score >= thresh.blue) return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
+        if (score >= thresh.orange) return "bg-orange-500/10 text-orange-400 border border-orange-500/20";
+        return "bg-red-500/10 text-red-500 border border-red-500/20";
+    };
+
     return (
         <div className="min-h-screen bg-[#09090b] text-zinc-100 p-4 md:p-8 font-sans selection:bg-white/10 selection:text-white">
             <div className="max-w-7xl mx-auto space-y-8">
+
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-4 border-b border-zinc-900/50">
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
                                 <Package className="w-6 h-6 text-purple-500" />
                             </div>
-                            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">{title}</h1>
+                            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">
+                                {title}
+                            </h1>
                             <div className="flex items-center gap-2">
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-medium">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute animate-ping opacity-20" />
@@ -309,8 +358,11 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
                                 )}
                             </div>
                         </div>
-                        <p className="text-sm text-zinc-400 font-medium">Real-time packing analytics and performance metrics</p>
+                        <p className="text-sm text-zinc-400 font-medium">
+                            Real-time packing analytics and performance metrics
+                        </p>
                     </div>
+
                     <div className="flex p-1 bg-zinc-950/50 rounded-xl border border-zinc-800 h-11">
                         {['A-flow', 'B-flow'].map((flow) => (
                             <button
@@ -360,7 +412,15 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
                                         <YAxis yAxisId="right" orientation="right" hide />
                                         <RechartsTooltip
                                             cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                                            contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '8px' }}
+                                            contentStyle={{
+                                                backgroundColor: '#09090b',
+                                                border: '1px solid #27272a',
+                                                borderRadius: '8px',
+                                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
+                                                padding: '12px'
+                                            }}
+                                            itemStyle={{ fontSize: '13px', color: '#e4e4e7' }}
+                                            labelStyle={{ color: '#a1a1aa', marginBottom: '8px', fontSize: '12px' }}
                                         />
                                         <Bar yAxisId="left" dataKey="boxes" name="Boxes Packed" fill={type === 'ms' && activeFlow === 'B-flow' ? '#10b981' : '#2563eb'} radius={[4, 4, 0, 0]} barSize={32} fillOpacity={0.8} />
                                         {!(type === 'ms' && activeFlow === 'B-flow') && (
@@ -379,25 +439,52 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
                 </Card>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                    <div className="relative w-full sm:max-w-xs">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                        <Input
-                            placeholder="Search by operator..."
-                            className="h-10 pl-9 bg-zinc-900/30 border-zinc-800/50 rounded-xl"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+                    <div className="flex flex-wrap gap-4 items-center">
+                        <div className="relative flex-1 min-w-[300px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                            <Input
+                                placeholder="Search by operator..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500/50 pl-10 rounded-xl"
+                            />
+                        </div>
+                        <Button
+                            onClick={handleExportCSV}
+                            variant="outline"
+                            className="gap-2 bg-emerald-600/10 border-emerald-600/20 text-emerald-500 hover:bg-emerald-600 hover:text-white transition-all rounded-xl border font-semibold"
+                        >
+                            <Download className="w-4 h-4" />
+                            Export CSV
+                        </Button>
                     </div>
+
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-600/10 border border-blue-600/20 text-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.05)]">
                             <Users className="w-4 h-4" />
-                            <span className="text-xs font-bold uppercase tracking-wider">{activityMetrics.activeThisHour} Personnel Active</span>
+                            <span className="text-xs font-bold uppercase tracking-wider">
+                                {activityMetrics.activeThisHour} Personnel Active
+                            </span>
                         </div>
                         {availableFloors.map(floor => (
-                            <Label key={floor as string} className={cn("flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer border", selectedFloors.includes(floor as string) ? "bg-white/10 text-zinc-100" : "text-zinc-400 hover:bg-zinc-800/40")}>
-                                <Checkbox checked={selectedFloors.includes(floor as string)} onCheckedChange={() => handleFloorToggle(floor as string)} className="hidden" />
+                            <Label
+                                key={floor as string}
+                                className={cn(
+                                    "flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-colors border select-none",
+                                    selectedFloors.includes(floor as string)
+                                        ? "bg-white/10 border-white/20 text-zinc-100"
+                                        : "bg-transparent border-transparent text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-300"
+                                )}
+                            >
+                                <Checkbox
+                                    checked={selectedFloors.includes(floor as string)}
+                                    onCheckedChange={() => handleFloorToggle(floor as string)}
+                                    className="hidden"
+                                />
                                 <Layers className="w-3.5 h-3.5" />
-                                <span className="text-xs font-semibold uppercase">{floor.replace('_', ' ')}</span>
+                                <span className="text-xs font-semibold uppercase tracking-wider">
+                                    {(floor as string).replace('_', ' ')}
+                                </span>
                             </Label>
                         ))}
                     </div>
@@ -405,16 +492,16 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
 
                 <div className="rounded-2xl border border-zinc-800/40 bg-zinc-900/20 overflow-hidden">
                     <Table>
-                        <TableHeader className="bg-zinc-900/60 border-b border-zinc-800/40">
+                        <TableHeader className="bg-zinc-900/60 hover:bg-zinc-900/60 border-b border-zinc-800/40">
                             <TableRow className="border-none hover:bg-transparent">
-                                <TableHead className="py-4 pl-6 text-xs font-semibold text-zinc-400 uppercase">Operator</TableHead>
-                                <TableHead onClick={() => handleSort('BOXES_PACKED')} className="py-4 text-center text-xs font-semibold text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
+                                <TableHead className="py-4 pl-6 text-xs font-semibold tracking-wider text-zinc-400 uppercase">Operator</TableHead>
+                                <TableHead onClick={() => handleSort('BOXES_PACKED')} className="py-4 text-center text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
                                     Boxes Packed {sortConfig?.key === 'BOXES_PACKED' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                                 </TableHead>
-                                <TableHead onClick={() => handleSort('EFFORT')} className="py-4 text-right text-xs font-semibold text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
+                                <TableHead onClick={() => handleSort('EFFORT')} className="py-4 text-right text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
                                     Effort {sortConfig?.key === 'EFFORT' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                                 </TableHead>
-                                <TableHead onClick={() => handleSort('PRODUCTIVITY')} className="py-4 pr-6 text-right text-xs font-semibold text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
+                                <TableHead onClick={() => handleSort('PRODUCTIVITY')} className="py-4 pr-6 text-right text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
                                     Performance {sortConfig?.key === 'PRODUCTIVITY' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                                 </TableHead>
                             </TableRow>
@@ -423,108 +510,177 @@ export default function PackingMonitor({ title, type }: { title: string, type: '
                             <AnimatePresence mode="popLayout">
                                 {filteredDaily.length > 0 ? (
                                     filteredDaily.map((row: any, idx: number) => (
-                                        <motion.tr
-                                            layout
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            key={`${row.QNAME}-${row.FLOOR}-${idx}`}
-                                            className="group cursor-pointer border-b border-zinc-800/20 hover:bg-zinc-800/30 transition-colors"
-                                            onClick={() => setSelectedUser(row.QNAME)}
-                                        >
-                                            <TableCell className="py-4 pl-6">
-                                                <div className="flex flex-col gap-1.5">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-semibold text-zinc-100 group-hover:text-[#2563eb] transition-colors">{userMappings[row.QNAME] || row.QNAME}</span>
-                                                        {(() => {
-                                                            const status = activityMetrics.statusMap[row.QNAME];
-                                                            if (status === 'Active') return <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-[9px] text-emerald-500 border border-emerald-500/20">Active</span>;
-                                                            if (status === 'Idle') return <span className="px-1.5 py-0.5 rounded-full bg-amber-500/10 text-[9px] text-amber-500 border border-amber-500/20">Idle</span>;
-                                                            return <span className="px-1.5 py-0.5 rounded-full bg-zinc-500/10 text-[9px] text-zinc-500 border border-zinc-800">Away</span>;
-                                                        })()}
+                                        <Fragment key={`${row.QNAME}-${row.FLOOR}-${idx}`}>
+                                            <motion.tr
+                                                layout
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className={cn(
+                                                    "group cursor-pointer border-b border-zinc-800/20 transition-colors",
+                                                    selectedUser === row.QNAME ? "bg-white/5" : "hover:bg-zinc-800/30"
+                                                )}
+                                                onClick={() => setSelectedUser(selectedUser === row.QNAME ? null : row.QNAME)}
+                                            >
+                                                <TableCell className="py-4 pl-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="relative">
+                                                            <div className={cn(
+                                                                "p-2 rounded-xl border transition-all duration-300",
+                                                                selectedUser === row.QNAME ? "bg-blue-500/20 border-blue-500/50 scale-110 shadow-[0_0_15px_rgba(59,130,246,0.2)]" : "bg-zinc-900/50 border-zinc-800 group-hover:border-zinc-700"
+                                                            )}>
+                                                                <User className={cn(
+                                                                    "w-4 h-4 transition-colors",
+                                                                    selectedUser === row.QNAME ? "text-blue-400" : "text-zinc-500 group-hover:text-zinc-400"
+                                                                )} />
+                                                            </div>
+                                                            <div className={cn(
+                                                                "absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#09090b] shadow-sm flex items-center justify-center",
+                                                                activityMetrics.statusMap[row.QNAME] === 'Active' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" :
+                                                                    activityMetrics.statusMap[row.QNAME] === 'Idle' ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "bg-zinc-500"
+                                                            )}>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-semibold tracking-tight text-zinc-100 uppercase">
+                                                                    {userMappings[row.QNAME] || row.QNAME}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                                                                    <Layers className="w-2.5 h-2.5" />
+                                                                    {row.FLOOR.replace(/_/g, ' ')}
+                                                                </span>
+                                                                <span className="w-1 h-1 bg-zinc-800 rounded-full"></span>
+                                                                <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-tight">{row.QNAME}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {selectedUser === row.QNAME ? (
+                                                                <ChevronDown className="w-4 h-4 text-blue-400" />
+                                                            ) : (
+                                                                <ChevronRight className="w-4 h-4 text-zinc-600" />
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <span className="text-[10px] text-zinc-500 uppercase flex items-center gap-1">
-                                                        <Layers className="w-3 h-3" /> {row.FLOOR?.replace('_', ' ')}
+                                                </TableCell>
+                                                <TableCell className="py-4 text-center">
+                                                    <span className="text-sm font-medium text-zinc-200 tabular-nums">
+                                                        {row.BOXES_PACKED} <span className="text-[10px] text-zinc-500 uppercase ml-0.5 font-bold">BOXES</span>
                                                     </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="py-4 text-center">
-                                                <span className="text-sm font-medium text-zinc-200">{row.BOXES_PACKED} <span className="text-[10px] text-zinc-500 uppercase ml-0.5">boxes</span></span>
-                                            </TableCell>
-                                            <TableCell className="py-4 text-right">
-                                                <span className="text-sm font-medium text-zinc-300 flex items-center justify-end gap-1.5"><Clock className="w-3.5 h-3.5 text-zinc-500" />{row.EFFORT}h</span>
-                                            </TableCell>
-                                            <TableCell className="py-4 pr-6 text-right">
-                                                <div className="flex justify-end pr-2">
-                                                    <span className={cn("inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold", getPerformanceBg(row.PRODUCTIVITY, row.FLOOR))}>
-                                                        {row.PRODUCTIVITY}
+                                                </TableCell>
+                                                <TableCell className="py-4 text-right">
+                                                    <span className="text-sm font-medium text-zinc-300 tabular-nums flex items-center justify-end gap-1.5">
+                                                        <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                                                        {row.EFFORT}h
                                                     </span>
-                                                </div>
-                                            </TableCell>
-                                        </motion.tr>
+                                                </TableCell>
+                                                <TableCell className="py-4 pr-6 text-right">
+                                                    <div className="flex justify-end pr-2">
+                                                        <span className={cn(
+                                                            "inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold shadow-sm",
+                                                            getPerformanceBg(row.PRODUCTIVITY, row.FLOOR)
+                                                        )}>
+                                                            {row.PRODUCTIVITY}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                            </motion.tr>
+
+                                            <AnimatePresence>
+                                                {selectedUser === row.QNAME && (
+                                                    <motion.tr
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: "auto" }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        className="bg-white/[0.02]"
+                                                    >
+                                                        <TableCell colSpan={4} className="p-0 border-b border-zinc-800/40 overflow-hidden">
+                                                            <div className="py-6 px-12 space-y-4">
+                                                                <div className="flex items-center justify-between mb-4">
+                                                                    <Button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleExportUserCSV(row);
+                                                                        }}
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="gap-2 bg-emerald-600/10 border-emerald-600/20 text-emerald-500 hover:bg-emerald-600 hover:text-white transition-all rounded-lg border text-[10px] font-bold uppercase tracking-wider h-8"
+                                                                    >
+                                                                        <Download className="w-3.5 h-3.5" />
+                                                                        Export CSV
+                                                                    </Button>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-4 gap-4 px-6 py-2 border-b border-zinc-800/40 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                                                                    <span className="col-span-1">Interval</span>
+                                                                    <span className="text-center">Activity</span>
+                                                                    <span className="text-right">Effort</span>
+                                                                    <span className="text-right pr-4">Performance</span>
+                                                                </div>
+
+                                                                <div className="space-y-1">
+                                                                    {userHourlyData.length > 0 ? (
+                                                                        userHourlyData.map((hourRow: any, hIdx: number) => (
+                                                                            <motion.div
+                                                                                initial={{ opacity: 0, x: -10 }}
+                                                                                animate={{ opacity: 1, x: 0 }}
+                                                                                transition={{ delay: hIdx * 0.03 }}
+                                                                                key={hIdx}
+                                                                                className="grid grid-cols-4 gap-4 items-center py-2 px-6 rounded-lg hover:bg-white/[0.03] border border-transparent hover:border-zinc-800/50 transition-all group/hr"
+                                                                            >
+                                                                                <div className="col-span-1">
+                                                                                    <span className="text-xs font-mono font-bold text-zinc-400 group-hover/hr:text-blue-400 transition-colors">
+                                                                                        {String(hourRow.HOUR).padStart(2, '0')}:00
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="text-center">
+                                                                                    <span className="text-[11px] font-medium text-zinc-300 tabular-nums">
+                                                                                        {hourRow.BOXES_PACKED} <span className="text-[9px] text-zinc-600 font-bold uppercase">Boxes</span>
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="text-right">
+                                                                                    <span className="text-xs text-zinc-400 font-medium tabular-nums">{hourRow.EFFORT}h</span>
+                                                                                </div>
+                                                                                <div className="text-right pr-4">
+                                                                                    <span className={cn(
+                                                                                        "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tabular-nums min-w-[2rem] justify-center",
+                                                                                        getPerformanceBg(hourRow.PRODUCTIVITY, hourRow.FLOOR)
+                                                                                    )}>{hourRow.PRODUCTIVITY}</span>
+                                                                                </div>
+                                                                            </motion.div>
+                                                                        ))
+                                                                    ) : (
+                                                                        <div className="py-8 text-center border-2 border-dashed border-zinc-800/30 rounded-2xl bg-zinc-900/5 shadow-inner">
+                                                                            <Clock className="w-6 h-6 text-zinc-800 mx-auto mb-2" />
+                                                                            <p className="text-[10px] font-black uppercase tracking-tighter text-zinc-700">No shift data detected for this hour</p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+                                                    </motion.tr>
+                                                )}
+                                            </AnimatePresence>
+                                        </Fragment>
                                     ))
                                 ) : (
-                                    <TableRow><TableCell colSpan={4} className="h-40 text-center border-none">No operators found</TableCell></TableRow>
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="h-40 text-center border-none">
+                                            <div className="flex flex-col items-center justify-center gap-2 text-zinc-500">
+                                                <Search className="w-8 h-8 opacity-20 mb-2" />
+                                                <p className="text-sm font-medium">No operators found matching the criteria.</p>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
                                 )}
                             </AnimatePresence>
                         </TableBody>
                     </Table>
                 </div>
 
-                <Dialog open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
-                    <DialogContent className="max-w-5xl bg-[#09090b] border-zinc-800/60 p-0 overflow-hidden sm:rounded-2xl shadow-2xl">
-                        <DialogHeader className="p-6 pb-0">
-                            <div className="flex items-center gap-4 mb-2">
-                                <div className="p-2 sm:p-3 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20"><User className="w-6 h-6 sm:w-8 sm:h-8" /></div>
-                                <div className="text-left space-y-1">
-                                    <DialogTitle className="text-xl sm:text-2xl font-semibold text-zinc-100">{userMappings[selectedUser || ""] || selectedUser}</DialogTitle>
-                                    <DialogDescription className="text-xs sm:text-sm font-medium text-zinc-400">
-                                        {selectedUser} • Hourly Breakdown • {activeFlow.replace('-', ' ')}
-                                    </DialogDescription>
-                                </div>
-                            </div>
-                        </DialogHeader>
-                        <div className="p-6 overflow-y-auto max-h-[60vh] space-y-3 custom-scrollbar">
-                            {cascadeData.length > 0 ? (
-                                cascadeData.map((hourRow: any, i) => (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        key={i}
-                                        className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center p-4 rounded-xl border border-zinc-800/40 bg-zinc-900/10 hover:bg-zinc-800/30 transition-colors"
-                                    >
-                                        <div className="shrink-0 px-2 py-1">
-                                            <span className="text-lg font-mono font-semibold text-zinc-400">
-                                                {String(hourRow.HOUR).padStart(2, '0')}:00
-                                            </span>
-                                        </div>
-                                        <div className="flex-1 grid grid-cols-2 gap-8 w-full">
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
-                                                    Boxes
-                                                </span>
-                                                <span className="text-base sm:text-xl font-medium text-zinc-200 tabular-nums">
-                                                    {hourRow.BOXES_PACKED}
-                                                </span>
-                                            </div>
-                                            <div className="space-y-1 text-right">
-                                                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider justify-end block">
-                                                    Performance
-                                                </span>
-                                                <span className={cn("text-lg sm:text-xl font-bold block mt-1", getPerformanceText(hourRow.PRODUCTIVITY, hourRow.FLOOR))}>
-                                                    {hourRow.PRODUCTIVITY}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))
-                            ) : (<div className="py-12 text-center text-zinc-500 border border-dashed border-zinc-800/50 rounded-xl bg-zinc-900/10">
-                                <Clock className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                                <p className="text-sm font-medium">No hourly data available for this operator.</p>
-                            </div>)}
-                        </div>
-                    </DialogContent>
-                </Dialog>
             </div>
         </div>
     );

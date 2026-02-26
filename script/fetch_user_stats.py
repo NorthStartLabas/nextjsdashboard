@@ -41,16 +41,26 @@ def main():
 
     load_dotenv()
 
+    # Connection parameters
+    conn_params = {
+        'user': os.getenv('user'),
+        'account': os.getenv('account'),
+        'role': os.getenv('role'),
+        'warehouse': os.getenv('warehouse'),
+        'database': os.getenv('database'),
+        'schema': os.getenv('schema')
+    }
+
+    # Use Programmatic Access Token if available, otherwise fallback to configured authenticator
+    token = os.getenv('SNOWFLAKE_TOKEN')
+    if token:
+        conn_params['authenticator'] = 'oauth'
+        conn_params['token'] = token
+    else:
+        conn_params['authenticator'] = os.getenv('authenticator')
+
     try:
-        conn = snowflake.connector.connect(
-            user=os.getenv('user'),
-            authenticator=os.getenv('authenticator'),
-            account=os.getenv('account'),
-            role=os.getenv('role'),
-            warehouse=os.getenv('warehouse'),
-            database=os.getenv('database'),
-            schema=os.getenv('schema')
-        )
+        conn = snowflake.connector.connect(**conn_params)
     except Exception as e:
         print(json.dumps({"success": False, "error": f"Failed to connect to Snowflake: {str(e)}"}))
         return

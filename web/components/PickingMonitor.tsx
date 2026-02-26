@@ -5,16 +5,86 @@ import { format } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ComposedChart, Line } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Box, Layers, Users, Zap, Search, ClipboardList, Timer, Divide, Trophy, User, Activity, Clock, Circle } from "lucide-react";
+import { ArrowRight, Box, Layers, Users, Zap, Search, ClipboardList, Timer, Divide, Trophy, User, Activity, Clock, Circle, HelpCircle, Download, ChevronDown, ChevronRight } from "lucide-react";
+import { Fragment } from "react";
+
+// Explanation Section Component
+const MetricsLegend = () => (
+    <Card className="bg-zinc-900/10 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden mb-6">
+        <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-zinc-400">
+                        <div className="p-1.5 bg-zinc-800/50 rounded-lg">
+                            <Divide className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">Ratio</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">
+                        Items picked per line. A high ratio indicates complex <span className="text-zinc-300">multi-picking</span> or counting tasks.
+                    </p>
+                </div>
+
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-zinc-400">
+                        <div className="p-1.5 bg-zinc-800/50 rounded-lg">
+                            <Layers className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">Intensity Context</span>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-3 bg-blue-500 rounded-full" />
+                            <span className="text-[10px] text-zinc-400 font-bold uppercase">Blue:</span>
+                            <span className="text-[10px] text-zinc-500 font-medium">Heavier weight than average.</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-3 bg-purple-500 rounded-full" />
+                            <span className="text-[10px] text-zinc-400 font-bold uppercase">Purple:</span>
+                            <span className="text-[10px] text-zinc-500 font-medium">Higher item density per box.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-zinc-400">
+                        <div className="p-1.5 bg-zinc-800/50 rounded-lg">
+                            <Trophy className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">Performance</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">
+                        <span className="text-zinc-300 font-bold">Raw:</span> Your base speed in Lines Per Hour.<br />
+                        <span className="text-zinc-300 font-bold text-blue-400">Adjusted:</span> Final score boosted for hard physical labor.
+                    </p>
+                </div>
+
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-zinc-400">
+                        <div className="p-1.5 bg-amber-500/10 rounded-lg">
+                            <Zap className="w-3.5 h-3.5 text-amber-500" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">Effort Boost</span>
+                    </div>
+                    <div className="p-2 bg-zinc-800/20 rounded-xl border border-zinc-800/40">
+                        <p className="text-[10px] text-zinc-500 italic font-medium">
+                            Pickers lifting heavy weights or complex loads get a multiplier to their final performance score.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+);
 
 export default function PickingMonitor({ title, type }: { title: any, type: any }) {
-    const [data, setData] = useState({ daily: [], hourly: [] });
+    const [data, setData] = useState<{ daily: any[], hourly: any[] }>({ daily: [], hourly: [] });
     const [thresholds, setThresholds] = useState<any>(null);
     const [blacklist, setBlacklist] = useState<string[]>([]);
     const [userMappings, setUserMappings] = useState<Record<string, string>>({});
@@ -25,7 +95,6 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
     const [searchQuery, setSearchQuery] = useState("");
     const [lastRefreshed, setLastRefreshed] = useState("");
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'LINES_PICKED', direction: 'desc' });
-
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
     const fetchData = async () => {
@@ -46,7 +115,7 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
             if (result.success) {
                 setData(result.data);
 
-                // Auto-select all available floors except unknown_floor
+                // Auto-select all available floors 
                 const allFloors = Array.from(new Set(result.data.daily.map((d: any) => d.FLOOR)))
                     .filter(Boolean)
                     .filter(f => f !== 'unknown_floor');
@@ -64,7 +133,6 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
         setLoading(true);
         fetchData();
 
-        // Calculate time to next 5-minute mark
         const now = new Date();
         const minutes = now.getMinutes();
         const seconds = now.getSeconds();
@@ -107,8 +175,95 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
             .sort();
     }, [data.daily]);
 
+    const handleExportCSV = () => {
+        if (!filteredDaily || filteredDaily.length === 0) return;
+
+        const headers = ["Operator", "Username", "Floor", "Flow", "Lines", "Items", "Ratio", "Effort (h)", "Weight Intensity", "Item Intensity", "Performance", "Adjusted Performance"];
+
+        const rows = filteredDaily.map(row => [
+            userMappings[row.QNAME] || row.QNAME,
+            row.QNAME,
+            row.FLOOR.replace(/_/g, ' '),
+            row.FLOW,
+            row.LINES_PICKED,
+            row.ITEMS_PICKED,
+            row.RATIO,
+            row.EFFORT,
+            row.WEIGHT_INTENSITY,
+            row.ITEM_INTENSITY,
+            row.PRODUCTIVITY,
+            row.ADJUSTED_PRODUCTIVITY
+        ]);
+
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(r => r.join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Picking_Monitor_${type}_${activeFlow}_${format(new Date(), "yyyy-MM-dd")}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleExportUserCSV = (user: any) => {
+        const userHourly = data.hourly
+            .filter((row: any) =>
+                row.QNAME === user.QNAME &&
+                row.FLOW === activeFlow &&
+                selectedFloors.includes(row.FLOOR)
+            )
+            .sort((a, b) => a.HOUR - b.HOUR);
+
+        if (userHourly.length === 0) return;
+
+        const headers = ["Hour", "Operator", "Username", "Floor", "Flow", "Lines", "Items", "Ratio", "Effort (h)", "Weight Intensity", "Item Intensity", "Performance", "Adjusted Performance"];
+
+        const rows = userHourly.map(row => {
+            const prod = parseFloat(row.PRODUCTIVITY) || 0;
+            const wIntensity = parseFloat(row.WEIGHT_INTENSITY) || 1;
+            const iIntensity = parseFloat(row.ITEM_INTENSITY) || 1;
+            return [
+                `${String(row.HOUR).padStart(2, '0')}:00`,
+                userMappings[row.QNAME] || row.QNAME,
+                row.QNAME,
+                row.FLOOR.replace(/_/g, ' '),
+                row.FLOW,
+                row.LINES_PICKED,
+                row.ITEMS_PICKED,
+                row.RATIO,
+                row.EFFORT,
+                wIntensity,
+                iIntensity,
+                prod,
+                Math.round(prod * ((wIntensity + iIntensity) / 2))
+            ];
+        });
+
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(r => r.join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Picking_Monitor_${type}_${user.QNAME}_${format(new Date(), "yyyy-MM-dd")}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const filteredDaily = useMemo(() => {
-        let sorted = [...data.daily].filter((row: any) =>
+        // 1. Basic filtering
+        let filtered = data.daily.filter((row: any) =>
             row.FLOW === activeFlow &&
             selectedFloors.includes(row.FLOOR) &&
             !blacklist.includes(row.QNAME) &&
@@ -116,37 +271,36 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                 (userMappings[row.QNAME]?.toLowerCase().includes(searchQuery.toLowerCase()) || false))
         );
 
-        if (sortConfig) {
-            sorted.sort((a: any, b: any) => {
-                let aVal, bVal;
-                switch (sortConfig.key) {
-                    case 'LINES_PICKED':
-                        aVal = a.LINES_PICKED;
-                        bVal = b.LINES_PICKED;
-                        break;
-                    case 'RATIO':
-                        aVal = parseFloat(a.RATIO);
-                        bVal = parseFloat(b.RATIO);
-                        break;
-                    case 'EFFORT':
-                        aVal = parseFloat(a.EFFORT);
-                        bVal = parseFloat(b.EFFORT);
-                        break;
-                    case 'PRODUCTIVITY':
-                        aVal = parseFloat(a.PRODUCTIVITY);
-                        bVal = parseFloat(b.PRODUCTIVITY);
-                        break;
-                    default:
-                        aVal = 0;
-                        bVal = 0;
-                }
+        // 2. Map and pre-calculate scores for sorting
+        let processed = filtered.map(row => {
+            const prod = parseFloat(row.PRODUCTIVITY) || 0;
+            const wIntensity = parseFloat(row.WEIGHT_INTENSITY) || 1;
+            const iIntensity = parseFloat(row.ITEM_INTENSITY) || 1;
+            return {
+                ...row,
+                PRODUCTIVITY: prod,
+                RATIO: parseFloat(row.RATIO) || 0,
+                EFFORT: parseFloat(row.EFFORT) || 0,
+                LINES_PICKED: parseInt(row.LINES_PICKED) || 0,
+                ITEMS_PICKED: parseInt(row.ITEMS_PICKED) || 0,
+                WEIGHT_INTENSITY: wIntensity,
+                ITEM_INTENSITY: iIntensity,
+                ADJUSTED_PRODUCTIVITY: Math.round(prod * ((wIntensity + iIntensity) / 2))
+            };
+        });
 
-                if (sortConfig.direction === 'asc') return aVal - bVal;
-                return bVal - aVal;
+        // 3. Sorting
+        if (sortConfig) {
+            processed.sort((a, b) => {
+                let aVal = a[sortConfig.key];
+                let bVal = b[sortConfig.key];
+
+                if (sortConfig.direction === 'asc') return (aVal > bVal ? 1 : -1);
+                return (aVal < bVal ? 1 : -1);
             });
         }
 
-        return sorted;
+        return processed;
     }, [data.daily, activeFlow, selectedFloors, searchQuery, blacklist, userMappings, sortConfig]);
 
     const chartData = useMemo(() => {
@@ -176,15 +330,30 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
         })).filter(d => d.lines > 0 || d.users > 0);
     }, [data.hourly, activeFlow, selectedFloors, blacklist]);
 
-    const cascadeData = useMemo(() => {
+    const userHourlyData = useMemo(() => {
         if (!selectedUser) return [];
-
         return data.hourly
             .filter((row: any) =>
                 row.QNAME === selectedUser &&
                 row.FLOW === activeFlow &&
                 selectedFloors.includes(row.FLOOR)
             )
+            .map(row => {
+                const prod = parseFloat(row.PRODUCTIVITY) || 0;
+                const wIntensity = parseFloat(row.WEIGHT_INTENSITY) || 1;
+                const iIntensity = parseFloat(row.ITEM_INTENSITY) || 1;
+                return {
+                    ...row,
+                    PRODUCTIVITY: prod,
+                    RATIO: parseFloat(row.RATIO) || 0,
+                    EFFORT: parseFloat(row.EFFORT) || 0,
+                    LINES_PICKED: parseInt(row.LINES_PICKED) || 0,
+                    ITEMS_PICKED: parseInt(row.ITEMS_PICKED) || 0,
+                    WEIGHT_INTENSITY: wIntensity,
+                    ITEM_INTENSITY: iIntensity,
+                    ADJUSTED_PRODUCTIVITY: Math.round(prod * ((wIntensity + iIntensity) / 2))
+                };
+            })
             .sort((a: any, b: any) => a.HOUR - b.HOUR);
     }, [data.hourly, selectedUser, activeFlow, selectedFloors]);
 
@@ -419,16 +588,28 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                     </CardContent>
                 </Card>
 
+                <MetricsLegend />
+
                 {/* Filters Section */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                    <div className="relative w-full sm:max-w-xs">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                        <Input
-                            placeholder="Search by operator..."
-                            className="h-10 pl-9 bg-zinc-900/30 border-zinc-800/50 text-sm font-medium placeholder:text-zinc-500 focus-visible:ring-zinc-700 rounded-xl"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+                    <div className="flex flex-wrap gap-4 items-center">
+                        <div className="relative flex-1 min-w-[300px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                            <Input
+                                placeholder="Search by operator name or username..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="bg-zinc-900 border-zinc-800 focus-visible:ring-blue-500/50 pl-10 rounded-xl"
+                            />
+                        </div>
+                        <Button
+                            onClick={handleExportCSV}
+                            variant="outline"
+                            className="gap-2 bg-emerald-600/10 border-emerald-600/20 text-emerald-500 hover:bg-emerald-600 hover:text-white transition-all rounded-xl border font-semibold"
+                        >
+                            <Download className="w-4 h-4" />
+                            Export CSV
+                        </Button>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
@@ -469,16 +650,28 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                             <TableRow className="border-none hover:bg-transparent">
                                 <TableHead className="py-4 pl-6 text-xs font-semibold tracking-wider text-zinc-400 uppercase">Operator</TableHead>
                                 <TableHead onClick={() => handleSort('LINES_PICKED')} className="py-4 text-center text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
-                                    Activity {sortConfig?.key === 'LINES_PICKED' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                                    <div className="flex items-center justify-center gap-1.5">
+                                        Activity {sortConfig?.key === 'LINES_PICKED' && (sortConfig.direction === 'asc' ? '↓' : '↑')}
+                                    </div>
                                 </TableHead>
                                 <TableHead onClick={() => handleSort('RATIO')} className="py-4 text-right text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
-                                    Ratio {sortConfig?.key === 'RATIO' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                                    Ratio {sortConfig?.key === 'RATIO' && (sortConfig.direction === 'asc' ? ' ↑' : ' ↓')}
                                 </TableHead>
                                 <TableHead onClick={() => handleSort('EFFORT')} className="py-4 text-right text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
                                     Effort {sortConfig?.key === 'EFFORT' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                                 </TableHead>
-                                <TableHead onClick={() => handleSort('PRODUCTIVITY')} className="py-4 pr-6 text-right text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors">
-                                    Performance {sortConfig?.key === 'PRODUCTIVITY' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                                <TableHead className="py-4 text-center text-xs font-semibold tracking-wider text-zinc-400 uppercase">
+                                    Intensity
+                                </TableHead>
+                                <TableHead onClick={() => handleSort('PRODUCTIVITY')} className="py-4 text-left text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors w-32">
+                                    <div className="ml-4">
+                                        Performance {sortConfig?.key === 'PRODUCTIVITY' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                                    </div>
+                                </TableHead>
+                                <TableHead onClick={() => handleSort('ADJUSTED_PRODUCTIVITY')} className="py-4 pr-6 text-left text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors w-32">
+                                    <div className="ml-4">
+                                        Adjusted {sortConfig?.key === 'ADJUSTED_PRODUCTIVITY' && (sortConfig.direction === 'asc' ? ' ↑' : ' ↓')}
+                                    </div>
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
@@ -486,85 +679,243 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                             <AnimatePresence mode="popLayout">
                                 {filteredDaily.length > 0 ? (
                                     filteredDaily.map((row: any, idx: number) => (
-                                        <motion.tr
-                                            layout
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0 }}
-                                            transition={{ duration: 0.2 }}
-                                            key={`${row.QNAME}-${row.FLOOR}-${idx}`}
-                                            className="group cursor-pointer border-b border-zinc-800/20 hover:bg-zinc-800/30 transition-colors"
-                                            onClick={() => setSelectedUser(row.QNAME)}
-                                        >
-                                            <TableCell className="py-4 pl-6">
-                                                <div className="flex flex-col gap-1.5">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-semibold text-zinc-100 group-hover:text-[#2563eb] transition-colors">
-                                                            {userMappings[row.QNAME] || row.QNAME}
-                                                        </span>
-                                                        {(() => {
-                                                            const status = activityMetrics.statusMap[row.QNAME];
-                                                            if (status === 'Active') return (
-                                                                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-[9px] font-black uppercase tracking-tighter text-emerald-500 border border-emerald-500/20">
-                                                                    <Circle className="w-1.5 h-1.5 fill-current animate-pulse" /> Active
+                                        <Fragment key={`${row.QNAME}-${row.FLOOR}-${idx}`}>
+                                            <motion.tr
+                                                layout
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className={cn(
+                                                    "group cursor-pointer border-b border-zinc-800/20 transition-colors",
+                                                    selectedUser === row.QNAME ? "bg-white/5" : "hover:bg-zinc-800/30"
+                                                )}
+                                                onClick={() => setSelectedUser(selectedUser === row.QNAME ? null : row.QNAME)}
+                                            >
+                                                <TableCell className="py-4 pl-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="relative">
+                                                            <div className={cn(
+                                                                "p-2 rounded-xl border transition-all duration-300",
+                                                                selectedUser === row.QNAME ? "bg-blue-500/20 border-blue-500/50 scale-110 shadow-[0_0_15px_rgba(59,130,246,0.2)]" : "bg-zinc-900/50 border-zinc-800 group-hover:border-zinc-700"
+                                                            )}>
+                                                                <User className={cn(
+                                                                    "w-4 h-4 transition-colors",
+                                                                    selectedUser === row.QNAME ? "text-blue-400" : "text-zinc-500 group-hover:text-zinc-400"
+                                                                )} />
+                                                            </div>
+                                                            <div className={cn(
+                                                                "absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#09090b] shadow-sm flex items-center justify-center",
+                                                                activityMetrics.statusMap[row.QNAME] === 'Active' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" :
+                                                                    activityMetrics.statusMap[row.QNAME] === 'Idle' ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" : "bg-zinc-500"
+                                                            )}>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-semibold tracking-tight text-zinc-100 uppercase">
+                                                                    {userMappings[row.QNAME] || row.QNAME}
                                                                 </span>
-                                                            );
-                                                            if (status === 'Idle') return (
-                                                                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-[9px] font-black uppercase tracking-tighter text-amber-500 border border-amber-500/20">
-                                                                    <Circle className="w-1.5 h-1.5 fill-current" /> Idle
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                                                                    <Layers className="w-2.5 h-2.5" />
+                                                                    {row.FLOOR.replace(/_/g, ' ')}
                                                                 </span>
-                                                            );
-                                                            return (
-                                                                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-500/10 text-[9px] font-black uppercase tracking-tighter text-zinc-500 border border-zinc-800">
-                                                                    Away
-                                                                </span>
-                                                            );
-                                                        })()}
+                                                                <span className="w-1 h-1 bg-zinc-800 rounded-full"></span>
+                                                                <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-tight">{row.QNAME}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {selectedUser === row.QNAME ? (
+                                                                <ChevronDown className="w-4 h-4 text-blue-400" />
+                                                            ) : (
+                                                                <ChevronRight className="w-4 h-4 text-zinc-600" />
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <span className="text-[10px] font-medium text-zinc-500 uppercase flex items-center gap-1 text-zinc-600">
-                                                        <Layers className="w-3 h-3" />
-                                                        {row.FLOOR?.replace('_', ' ')}
-                                                        {userMappings[row.QNAME] && <span className="ml-1 text-zinc-700 font-mono">• {row.QNAME}</span>}
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex flex-col items-center justify-center gap-1">
+                                                        <span className="text-sm font-medium text-zinc-200 tabular-nums">
+                                                            {row.LINES_PICKED} <span className="text-[10px] text-zinc-500 uppercase ml-0.5 font-bold">LINES</span>
+                                                        </span>
+                                                        <div className="w-8 h-px bg-zinc-800/50"></div>
+                                                        <span className="text-xs font-medium text-zinc-400 tabular-nums">
+                                                            {row.ITEMS_PICKED} <span className="text-[9px] uppercase font-bold">UNITS</span>
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4 text-right">
+                                                    <span className="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 text-xs font-mono font-medium text-zinc-400 bg-zinc-800/30 rounded-md border border-zinc-800/50">
+                                                        {row.RATIO}
                                                     </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="py-4">
-                                                <div className="flex flex-col items-center justify-center gap-1">
-                                                    <span className="text-sm font-medium text-zinc-200 tabular-nums">
-                                                        {row.LINES_PICKED} <span className="text-[10px] text-zinc-500 uppercase ml-0.5">lines</span>
+                                                </TableCell>
+                                                <TableCell className="py-4 text-right">
+                                                    <span className="text-sm font-medium text-zinc-300 tabular-nums flex items-center justify-end gap-1.5">
+                                                        <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                                                        {row.EFFORT}h
                                                     </span>
-                                                    <div className="w-8 h-px bg-zinc-800/50"></div>
-                                                    <span className="text-xs font-medium text-zinc-400 tabular-nums">
-                                                        {row.ITEMS_PICKED} <span className="text-[9px] uppercase">units</span>
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="py-4 text-right">
-                                                <span className="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 text-xs font-mono font-medium text-zinc-400 bg-zinc-800/30 rounded-md border border-zinc-800/50">
-                                                    {row.RATIO}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="py-4 text-right">
-                                                <span className="text-sm font-medium text-zinc-300 tabular-nums flex items-center justify-end gap-1.5">
-                                                    <Clock className="w-3.5 h-3.5 text-zinc-500" />
-                                                    {row.EFFORT}h
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="py-4 pr-6 text-right">
-                                                <div className="flex justify-end pr-2">
-                                                    <span className={cn(
-                                                        "inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold tabular-nums",
-                                                        getPerformanceBg(row.PRODUCTIVITY, row.FLOOR)
-                                                    )}>
-                                                        {row.PRODUCTIVITY}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                        </motion.tr>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex items-center justify-center gap-3">
+                                                        <div className="flex flex-col items-center">
+                                                            <span className={cn(
+                                                                "text-xs font-bold tabular-nums",
+                                                                row.WEIGHT_INTENSITY > 1.2 ? "text-blue-400" : row.WEIGHT_INTENSITY < 0.8 ? "text-zinc-600" : "text-zinc-400"
+                                                            )}>
+                                                                {row.WEIGHT_INTENSITY}x
+                                                            </span>
+                                                            <span className="text-[8px] text-zinc-600 uppercase font-black tracking-tighter">Weight</span>
+                                                        </div>
+                                                        <div className="w-px h-6 bg-zinc-800/50"></div>
+                                                        <div className="flex flex-col items-center">
+                                                            <span className={cn(
+                                                                "text-xs font-bold tabular-nums",
+                                                                row.ITEM_INTENSITY > 1.2 ? "text-purple-400" : row.ITEM_INTENSITY < 0.8 ? "text-zinc-600" : "text-zinc-400"
+                                                            )}>
+                                                                {row.ITEM_INTENSITY}x
+                                                            </span>
+                                                            <span className="text-[8px] text-zinc-600 uppercase font-black tracking-tighter">Items</span>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex justify-start ml-4">
+                                                        <span className={cn(
+                                                            "inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold tabular-nums shadow-sm",
+                                                            getPerformanceBg(row.PRODUCTIVITY, row.FLOOR)
+                                                        )}>
+                                                            {row.PRODUCTIVITY}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4 pr-6">
+                                                    <div className="flex items-center justify-start gap-1.5 ml-4">
+                                                        <span className={cn(
+                                                            "inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold tabular-nums shadow-sm min-w-[2.5rem] justify-center",
+                                                            getPerformanceBg(row.ADJUSTED_PRODUCTIVITY, row.FLOOR)
+                                                        )}>
+                                                            {row.ADJUSTED_PRODUCTIVITY}
+                                                        </span>
+                                                        {row.ADJUSTED_PRODUCTIVITY > row.PRODUCTIVITY && (
+                                                            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20 animate-pulse" />
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                            </motion.tr>
+
+                                            <AnimatePresence>
+                                                {selectedUser === row.QNAME && (
+                                                    <motion.tr
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: "auto" }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        className="bg-white/[0.02]"
+                                                    >
+                                                        <TableCell colSpan={7} className="p-0 border-b border-zinc-800/40 overflow-hidden">
+                                                            <div className="py-6 px-12 space-y-4">
+                                                                <div className="flex items-center justify-between mb-4">
+                                                                    <Button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleExportUserCSV(row);
+                                                                        }}
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="gap-2 bg-emerald-600/10 border-emerald-600/20 text-emerald-500 hover:bg-emerald-600 hover:text-white transition-all rounded-lg border text-[10px] font-bold uppercase tracking-wider h-8"
+                                                                    >
+                                                                        <Download className="w-3.5 h-3.5" />
+                                                                        Export CSV
+                                                                    </Button>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-7 gap-4 px-6 py-2 border-b border-zinc-800/40 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                                                                    <span className="col-span-1">Interval</span>
+                                                                    <span className="text-center">Activity</span>
+                                                                    <span className="text-right">Ratio</span>
+                                                                    <span className="text-right">Effort</span>
+                                                                    <span className="text-center">Intensity</span>
+                                                                    <span className="text-right ml-4">PERFORMANCE</span>
+                                                                    <span className="text-left ml-4">ADJUSTED</span>
+                                                                </div>
+
+                                                                <div className="space-y-1">
+                                                                    {userHourlyData.length > 0 ? (
+                                                                        userHourlyData.map((hourRow: any, hIdx: number) => (
+                                                                            <motion.div
+                                                                                initial={{ opacity: 0, x: -10 }}
+                                                                                animate={{ opacity: 1, x: 0 }}
+                                                                                transition={{ delay: hIdx * 0.03 }}
+                                                                                key={hIdx}
+                                                                                className="grid grid-cols-7 gap-4 items-center py-2 px-6 rounded-lg hover:bg-white/[0.03] border border-transparent hover:border-zinc-800/50 transition-all group/hr"
+                                                                            >
+                                                                                <div className="col-span-1">
+                                                                                    <span className="text-xs font-mono font-bold text-zinc-400 group-hover/hr:text-blue-400 transition-colors">
+                                                                                        {String(hourRow.HOUR).padStart(2, '0')}:00
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="flex flex-col items-center">
+                                                                                    <span className="text-[11px] font-medium text-zinc-300 tabular-nums">
+                                                                                        {hourRow.LINES_PICKED} <span className="text-[9px] text-zinc-600 font-bold">LINES</span>
+                                                                                    </span>
+                                                                                    <span className="text-[9px] text-zinc-600 tabular-nums">
+                                                                                        {hourRow.ITEMS_PICKED} <span className="text-[8px] font-bold">UNITS</span>
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="text-right">
+                                                                                    <span className="text-[10px] font-mono text-zinc-500 bg-zinc-950/50 px-1.5 py-0.5 rounded border border-zinc-900">
+                                                                                        {hourRow.RATIO}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="text-right">
+                                                                                    <span className="text-xs text-zinc-400 font-medium tabular-nums">{hourRow.EFFORT}h</span>
+                                                                                </div>
+                                                                                <div className="flex items-center justify-center gap-3">
+                                                                                    <span className={cn(
+                                                                                        "text-[10px] font-bold tabular-nums",
+                                                                                        hourRow.WEIGHT_INTENSITY > 1.2 ? "text-blue-400" : "text-zinc-600"
+                                                                                    )}>{hourRow.WEIGHT_INTENSITY}x</span>
+                                                                                    <div className="w-px h-3 bg-zinc-800/50"></div>
+                                                                                    <span className={cn(
+                                                                                        "text-[10px] font-bold tabular-nums",
+                                                                                        hourRow.ITEM_INTENSITY > 1.2 ? "text-purple-400" : "text-zinc-600"
+                                                                                    )}>{hourRow.ITEM_INTENSITY}x</span>
+                                                                                </div>
+                                                                                <div className="text-right">
+                                                                                    <span className={cn(
+                                                                                        "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tabular-nums ml-4",
+                                                                                        getPerformanceBg(hourRow.PRODUCTIVITY, hourRow.FLOOR)
+                                                                                    )}>{hourRow.PRODUCTIVITY}</span>
+                                                                                </div>
+                                                                                <div className="col-span-1 text-left flex items-center gap-1.5 ml-4">
+                                                                                    <span className={cn(
+                                                                                        "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tabular-nums min-w-[2rem] justify-center",
+                                                                                        getPerformanceBg(hourRow.ADJUSTED_PRODUCTIVITY, hourRow.FLOOR)
+                                                                                    )}>{hourRow.ADJUSTED_PRODUCTIVITY}</span>
+                                                                                    {hourRow.ADJUSTED_PRODUCTIVITY > hourRow.PRODUCTIVITY && (
+                                                                                        <Zap className="w-2.5 h-2.5 text-amber-500 fill-amber-500/20" />
+                                                                                    )}
+                                                                                </div>
+                                                                            </motion.div>
+                                                                        ))
+                                                                    ) : (
+                                                                        <div className="py-8 text-center border-2 border-dashed border-zinc-800/30 rounded-2xl bg-zinc-900/5 shadow-inner">
+                                                                            <Clock className="w-6 h-6 text-zinc-800 mx-auto mb-2" />
+                                                                            <p className="text-[10px] font-black uppercase tracking-tighter text-zinc-700">No shift data detected for this hour</p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+                                                    </motion.tr>
+                                                )}
+                                            </AnimatePresence>
+                                        </Fragment>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-40 text-center border-none">
+                                        <TableCell colSpan={7} className="h-40 text-center border-none">
                                             <div className="flex flex-col items-center justify-center gap-2 text-zinc-500">
                                                 <Search className="w-8 h-8 opacity-20 mb-2" />
                                                 <p className="text-sm font-medium">No operators found matching the criteria.</p>
@@ -577,89 +928,6 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                     </Table>
                 </div>
 
-                {/* Cascade View Modal */}
-                <Dialog open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
-                    <DialogContent className="max-w-5xl bg-[#09090b] border-zinc-800/60 shadow-2xl p-0 overflow-hidden sm:rounded-2xl">
-                        <DialogHeader className="p-6 pb-0">
-                            <div className="flex items-center gap-4 mb-2">
-                                <div className="p-2 sm:p-3 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20">
-                                    <User className="w-6 h-6 sm:w-8 sm:h-8" />
-                                </div>
-                                <div className="text-left space-y-1">
-                                    <DialogTitle className="text-xl sm:text-2xl font-semibold text-zinc-100">
-                                        {userMappings[selectedUser || ""] || selectedUser}
-                                    </DialogTitle>
-                                    <DialogDescription className="text-xs sm:text-sm font-medium text-zinc-400">
-                                        {selectedUser} • Hourly Breakdown • {activeFlow.replace('-', ' ')}
-                                    </DialogDescription>
-                                </div>
-                            </div>
-                        </DialogHeader>
-
-                        <div className="p-6 overflow-y-auto max-h-[60vh] space-y-3 custom-scrollbar">
-                            {cascadeData.length > 0 ? (
-                                cascadeData.map((hourRow: any, i) => (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        key={i}
-                                        className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center p-4 rounded-xl border border-zinc-800/40 bg-zinc-900/10 hover:bg-zinc-800/30 transition-colors"
-                                    >
-                                        <div className="shrink-0 px-2 py-1">
-                                            <span className="text-lg font-mono font-semibold text-zinc-400">
-                                                {String(hourRow.HOUR).padStart(2, '0')}:00
-                                            </span>
-                                        </div>
-
-                                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
-                                                    Lines
-                                                </span>
-                                                <span className="text-base sm:text-xl font-medium text-zinc-200 tabular-nums">
-                                                    {hourRow.LINES_PICKED}
-                                                </span>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
-                                                    Units
-                                                </span>
-                                                <span className="text-base sm:text-xl font-medium text-zinc-300 tabular-nums">
-                                                    {hourRow.ITEMS_PICKED}
-                                                </span>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
-                                                    Ratio
-                                                </span>
-                                                <span className="text-sm font-mono font-medium text-zinc-400 tabular-nums bg-zinc-950/50 px-2 py-0.5 rounded border border-zinc-900 w-fit mt-1 block">
-                                                    {hourRow.RATIO}
-                                                </span>
-                                            </div>
-                                            <div className="space-y-1 sm:text-right">
-                                                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider justify-end block">
-                                                    Performance
-                                                </span>
-                                                <span className={cn(
-                                                    "text-lg sm:text-xl font-bold tabular-nums block mt-1",
-                                                    getPerformanceText(hourRow.PRODUCTIVITY, hourRow.FLOOR)
-                                                )}>
-                                                    {hourRow.PRODUCTIVITY}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))
-                            ) : (
-                                <div className="py-12 text-center text-zinc-500 border border-dashed border-zinc-800/50 rounded-xl bg-zinc-900/10">
-                                    <Clock className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                                    <p className="text-sm font-medium">No hourly data available for this operator.</p>
-                                </div>
-                            )}
-                        </div>
-                    </DialogContent>
-                </Dialog>
             </div>
         </div>
     );

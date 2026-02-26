@@ -2,6 +2,105 @@
   "uptimeStart": null,
   "runs": [
     {
+      "id": "50e9a40b-2447-4b40-beea-1b2dac6e69d8",
+      "timestamp": "2026-02-26T11:23:44.651Z",
+      "durationMs": 3702,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-26\nFailed to connect to Snowflake: 250001 (08001): Failed to connect to DB: MDTPLC-AWSUSE1P1.snowflakecomputing.com:443. Invalid OAuth access token. [fe626588-c953-4634-9a8b-82ce9f5516a1]\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "091d75c5-20f4-479a-8046-953895775a50",
+      "timestamp": "2026-02-26T11:15:00.032Z",
+      "durationMs": 166439,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-26\nProcessing B-FLOW today deliveries (WADAT = '2026-02-26')...\nFetching deliveries closed (PGI'd) today...\nGenerated dashboard_data_ms.json\nGenerated dashboard_lines_ms.json\nGenerated dashboard_hu_ms.json\nGenerated dashboard_data_cvns.json\nGenerated dashboard_lines_cvns.json\nGenerated dashboard_hu_cvns.json\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-26')...\nGenerated dashboard_data_ms_backlog.json\nGenerated dashboard_lines_ms_backlog.json\nGenerated dashboard_hu_ms_backlog.json\nGenerated dashboard_data_cvns_backlog.json\nGenerated dashboard_lines_cvns_backlog.json\nGenerated dashboard_hu_cvns_backlog.json\nProcessing B-FLOW future deliveries (WADAT > '2026-02-26')...\nGenerated dashboard_data_ms_future.json\nGenerated dashboard_lines_ms_future.json\nGenerated dashboard_hu_ms_future.json\nGenerated dashboard_data_cvns_future.json\nGenerated dashboard_lines_cvns_future.json\nGenerated dashboard_hu_cvns_future.json\nFetching base picking data from SDS_CP_LTAP for 2026-02-26...\nFetching route data for 4507 unique VBELN values...\nFetching packing data with 5-day lookback: 20260221 to 20260226...\nFound 95522 raw packing rows in history window.\nAttributed 4704 boxes to today's activity.\nTransforming data...\nCalculating statistics...\nGenerated ms_picking_hourly_stats.csv\nGenerated ms_picking_daily_stats.csv\nGenerated cvns_picking_hourly_stats.csv\nGenerated cvns_picking_daily_stats.csv\nGenerated ms_packing_hourly_stats.csv\nGenerated ms_packing_daily_stats.csv\nGenerated cvns_packing_hourly_stats.csv\nGenerated cvns_packing_daily_stats.csv\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "434e45ca-9cd0-4149-8837-86fa896dd057",
+      "timestamp": "2026-02-26T11:10:00.011Z",
+      "durationMs": 164665,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-26\nProcessing B-FLOW today deliveries (WADAT = '2026-02-26')...\nFetching deliveries closed (PGI'd) today...\nGenerated dashboard_data_ms.json\nGenerated dashboard_lines_ms.json\nGenerated dashboard_hu_ms.json\nGenerated dashboard_data_cvns.json\nGenerated dashboard_lines_cvns.json\nGenerated dashboard_hu_cvns.json\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-26')...\nGenerated dashboard_data_ms_backlog.json\nGenerated dashboard_lines_ms_backlog.json\nGenerated dashboard_hu_ms_backlog.json\nGenerated dashboard_data_cvns_backlog.json\nGenerated dashboard_lines_cvns_backlog.json\nGenerated dashboard_hu_cvns_backlog.json\nProcessing B-FLOW future deliveries (WADAT > '2026-02-26')...\nGenerated dashboard_data_ms_future.json\nGenerated dashboard_lines_ms_future.json\nGenerated dashboard_hu_ms_future.json\nGenerated dashboard_data_cvns_future.json\nGenerated dashboard_lines_cvns_future.json\nGenerated dashboard_hu_cvns_future.json\nFetching base picking data from SDS_CP_LTAP for 2026-02-26...\nFetching route data for 4408 unique VBELN values...\nFetching packing data with 5-day lookback: 20260221 to 20260226...\nFound 95247 raw packing rows in history window.\nAttributed 4530 boxes to today's activity.\nTransforming data...\nCalculating statistics...\nGenerated ms_picking_hourly_stats.csv\nGenerated ms_picking_daily_stats.csv\nGenerated cvns_picking_hourly_stats.csv\nGenerated cvns_picking_daily_stats.csv\nGenerated ms_packing_hourly_stats.csv\nGenerated ms_packing_daily_stats.csv\nGenerated cvns_packing_hourly_stats.csv\nGenerated cvns_packing_daily_stats.csv\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "66bfb109-f770-4575-a7d9-ff1f8efc783a",
+      "timestamp": "2026-02-26T09:58:29.757Z",
+      "durationMs": 288599,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-26\nProcessing B-FLOW today deliveries (WADAT = '2026-02-26')...\nFetching deliveries closed (PGI'd) today...\nGenerated dashboard_data_ms.json\nGenerated dashboard_lines_ms.json\nGenerated dashboard_hu_ms.json\nGenerated dashboard_data_cvns.json\nGenerated dashboard_lines_cvns.json\nGenerated dashboard_hu_cvns.json\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-26')...\nGenerated dashboard_data_ms_backlog.json\nGenerated dashboard_lines_ms_backlog.json\nGenerated dashboard_hu_ms_backlog.json\nGenerated dashboard_data_cvns_backlog.json\nGenerated dashboard_lines_cvns_backlog.json\nGenerated dashboard_hu_cvns_backlog.json\nProcessing B-FLOW future deliveries (WADAT > '2026-02-26')...\nGenerated dashboard_data_ms_future.json\nGenerated dashboard_lines_ms_future.json\nGenerated dashboard_hu_ms_future.json\nGenerated dashboard_data_cvns_future.json\nGenerated dashboard_lines_cvns_future.json\nGenerated dashboard_hu_cvns_future.json\nFetching base picking data from SDS_CP_LTAP for 2026-02-26...\nFetching route data for 3828 unique VBELN values...\nFetching packing data with 5-day lookback: 20260221 to 20260226...\nFound 93682 raw packing rows in history window.\nAttributed 3709 boxes to today's activity.\nTransforming data...\nCalculating statistics...\nGenerated ms_picking_hourly_stats.csv\nGenerated ms_picking_daily_stats.csv\nGenerated cvns_picking_hourly_stats.csv\nGenerated cvns_picking_daily_stats.csv\nGenerated ms_packing_hourly_stats.csv\nGenerated ms_packing_daily_stats.csv\nGenerated cvns_packing_hourly_stats.csv\nGenerated cvns_packing_daily_stats.csv\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "eda297ff-431a-441f-bb1c-c5e15e83d39a",
+      "timestamp": "2026-02-26T09:43:56.399Z",
+      "durationMs": 142306,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-26\nProcessing B-FLOW today deliveries (WADAT = '2026-02-26')...\nFetching deliveries closed (PGI'd) today...\nGenerated dashboard_data_ms.json\nGenerated dashboard_lines_ms.json\nGenerated dashboard_hu_ms.json\nGenerated dashboard_data_cvns.json\nGenerated dashboard_lines_cvns.json\nGenerated dashboard_hu_cvns.json\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-26')...\nGenerated dashboard_data_ms_backlog.json\nGenerated dashboard_lines_ms_backlog.json\nGenerated dashboard_hu_ms_backlog.json\nGenerated dashboard_data_cvns_backlog.json\nGenerated dashboard_lines_cvns_backlog.json\nGenerated dashboard_hu_cvns_backlog.json\nProcessing B-FLOW future deliveries (WADAT > '2026-02-26')...\nGenerated dashboard_data_ms_future.json\nGenerated dashboard_lines_ms_future.json\nGenerated dashboard_hu_ms_future.json\nGenerated dashboard_data_cvns_future.json\nGenerated dashboard_lines_cvns_future.json\nGenerated dashboard_hu_cvns_future.json\nFetching base picking data from SDS_CP_LTAP for 2026-02-26...\nFetching route data for 3733 unique VBELN values...\nFetching packing data with 5-day lookback: 20260221 to 20260226...\nFound 93297 raw packing rows in history window.\nAttributed 3510 boxes to today's activity.\nTransforming data...\nCalculating statistics...\nGenerated ms_picking_hourly_stats.csv\nGenerated ms_picking_daily_stats.csv\nGenerated cvns_picking_hourly_stats.csv\nGenerated cvns_picking_daily_stats.csv\nGenerated ms_packing_hourly_stats.csv\nGenerated ms_packing_daily_stats.csv\nGenerated cvns_packing_hourly_stats.csv\nGenerated cvns_packing_daily_stats.csv\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "8ef6b687-c97e-4ace-aaec-6bf59754e789",
+      "timestamp": "2026-02-26T09:24:40.939Z",
+      "durationMs": 215493,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-26\nInitiating login request with your identity provider. Press CTRL+C to abort and try again...\nGoing to open: https://login.microsoftonline.com/d73a39db-6eda-495d-8000-7579f56d68b7/saml2?SAMLRequest=nZJbb%2BIwEIX%2FSuR9zpVLwAIqFlRtBCwppNc3EzvUqmNnPU5D%2F%2F06AaTuQ%2Fuwb5Z9Zr7jOTO5OZXCeWcauJJTFHoBcpjMFeXyOEX32a07Qg4YIikRSrIp%2BmCAbmYTIKWo8Lw2r3LH%2FtQMjGMbScDtwxTVWmJFgAOWpGSATY73880aR16ACQDTxuLQpYQCt6xXYyrs%2B03TeE3PU%2FroR0EQ%2BMHYt6pW8gN9QlTfMyqtjMqVuJac7J%2B%2BQIR%2B0G8RVmEJ6aXwJ5fnEXxHOZxFgH9lWeqm232GnPn1dwsloS6Z3jP9znN2v1ufDYB1sFlm6XqR7rZLrwaXETBu6IFUTSHIG8tVWdXGNvbsyS8Y9YU6cjuuZDlF1RuncpvT0yp%2BujscQMfVrnhYDB6T40t1l64eK6NWabZZJQl95pscOQ%2FXcKM23ASgZolsIzX2KoiGbhC50TALxjjq437kjcLgBTlLGymXxHSVV9%2BdD6%2FkuVagCqOk4JJ1LmncI70xPbhDRonbHw%2BoO7LxufEgHheDIR2ODrHfBheh8%2FLgzoie%2FcdIJv7nBpdV%2FG3TSZapEjz%2FcG6VLon5OrzQC7sbTt2ik2JWEi7mlGoGYEMUQjULzYixG290zZA%2FO1P%2F3fnZXw%3D%3D&RelayState=ver%3A3-hint%3A6351892371788482-ETMsDgAAAZyZQ8q6ABRBRVMvQ0JDL1BLQ1M1UGFkZGluZwEAABAAEOE4r73q4nvLpEf8L37685QAAACgFigxmDUga5VdCJuAXXf0D1gy71k2zfCxcSQ%2FazDrbDa9DuJZRUx4L1AmvhdGQ5P6MQ84j%2BmI%2BJxU8UcQnxq1GYAAKH8f4gVnZ%2Bb4EyF9WPpGqTTV90VsuMV61MFCNR4uL4Fw7N43WTi2%2Fmw4vPS6jVTmUBQZLof9XX5EllrAZJQt4qEVhQ1KH0WckNWCI2GMxvcplHly4o7Ngvbnbpf2NAAUYbXYgpfxz5v%2F1VIphsJIGqs0Pt8%3D to authenticate...\nA browser window should have opened for you to complete the login. If you can't see it, check existing browser windows, or your OS settings.\nProcessing B-FLOW today deliveries (WADAT = '2026-02-26')...\nFetching deliveries closed (PGI'd) today...\nGenerated dashboard_data_ms.json\nGenerated dashboard_lines_ms.json\nGenerated dashboard_hu_ms.json\nGenerated dashboard_data_cvns.json\nGenerated dashboard_lines_cvns.json\nGenerated dashboard_hu_cvns.json\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-26')...\nGenerated dashboard_data_ms_backlog.json\nGenerated dashboard_lines_ms_backlog.json\nGenerated dashboard_hu_ms_backlog.json\nGenerated dashboard_data_cvns_backlog.json\nGenerated dashboard_lines_cvns_backlog.json\nGenerated dashboard_hu_cvns_backlog.json\nProcessing B-FLOW future deliveries (WADAT > '2026-02-26')...\nGenerated dashboard_data_ms_future.json\nGenerated dashboard_lines_ms_future.json\nGenerated dashboard_hu_ms_future.json\nGenerated dashboard_data_cvns_future.json\nGenerated dashboard_lines_cvns_future.json\nGenerated dashboard_hu_cvns_future.json\nFetching base picking data from SDS_CP_LTAP for 2026-02-26...\nFetching route data for 3492 unique VBELN values...\nFetching packing data with 5-day lookback: 20260221 to 20260226...\nFound 92593 raw packing rows in history window.\nAttributed 3141 boxes to today's activity.\nTransforming data...\nCalculating statistics...\nGenerated ms_picking_hourly_stats.csv\nGenerated ms_picking_daily_stats.csv\nGenerated cvns_picking_hourly_stats.csv\nGenerated cvns_picking_daily_stats.csv\nGenerated ms_packing_hourly_stats.csv\nGenerated ms_packing_daily_stats.csv\nGenerated cvns_packing_hourly_stats.csv\nGenerated cvns_packing_daily_stats.csv\nDone!\n",
+      "error": null,
+      "type": "manual_today"
+    },
+    {
+      "id": "4f0d5b4a-7627-4f29-8d3e-85b877518d76",
+      "timestamp": "2026-02-26T01:11:21.774Z",
+      "durationMs": 156436,
+      "success": true,
+      "output": "Running data extraction for date: 2026-02-25\nProcessing B-FLOW today deliveries (WADAT = '2026-02-26')...\nFetching deliveries closed (PGI'd) today...\nB-FLOW today Extraction Error: 'LGNUM'\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-26')...\nGenerated dashboard_data_ms_backlog.json\nGenerated dashboard_lines_ms_backlog.json\nGenerated dashboard_hu_ms_backlog.json\nGenerated dashboard_data_cvns_backlog.json\nGenerated dashboard_lines_cvns_backlog.json\nGenerated dashboard_hu_cvns_backlog.json\nProcessing B-FLOW future deliveries (WADAT > '2026-02-26')...\nGenerated dashboard_data_ms_future.json\nGenerated dashboard_lines_ms_future.json\nGenerated dashboard_hu_ms_future.json\nGenerated dashboard_data_cvns_future.json\nGenerated dashboard_lines_cvns_future.json\nGenerated dashboard_hu_cvns_future.json\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\nFetching route data for 14172 unique VBELN values...\nFetching packing data with 5-day lookback: 20260220 to 20260225...\nFound 113795 raw packing rows in history window.\nAttributed 15337 boxes to today's activity.\nTransforming data...\nCalculating statistics...\nGenerated ms_picking_hourly_stats.csv\nGenerated ms_picking_daily_stats.csv\nGenerated cvns_picking_hourly_stats.csv\nGenerated cvns_picking_daily_stats.csv\nGenerated ms_packing_hourly_stats.csv\nGenerated ms_packing_daily_stats.csv\nGenerated cvns_packing_hourly_stats.csv\nGenerated cvns_packing_daily_stats.csv\nDone!\n",
+      "error": null,
+      "type": "manual_custom_date"
+    },
+    {
+      "id": "d7aaea02-e345-41d0-976e-2677e8bf7abf",
+      "timestamp": "2026-02-26T01:09:49.859Z",
+      "durationMs": 70,
+      "success": false,
+      "output": "",
+      "error": "Command failed: python3 process_data.py --date 2026-02-25\nTraceback (most recent call last):\n  File \"/Users/liviubuterez/Desktop/dashboard/script/process_data.py\", line 3, in <module>\n    import pandas as pd\nModuleNotFoundError: No module named 'pandas'\n",
+      "type": "manual_custom_date"
+    },
+    {
+      "id": "74f49698-deea-47f0-af11-e75b382b0cab",
+      "timestamp": "2026-02-26T01:09:26.811Z",
+      "durationMs": 74,
+      "success": false,
+      "output": "",
+      "error": "Command failed: python3 process_data.py --date 2026-02-25\nTraceback (most recent call last):\n  File \"/Users/liviubuterez/Desktop/dashboard/script/process_data.py\", line 3, in <module>\n    import pandas as pd\nModuleNotFoundError: No module named 'pandas'\n",
+      "type": "manual_custom_date"
+    },
+    {
+      "id": "3a77989a-ca6d-453c-867e-53d0fee01ddf",
+      "timestamp": "2026-02-26T01:08:46.653Z",
+      "durationMs": 10,
+      "success": false,
+      "output": "",
+      "error": "Command failed: python process_data.py --date 2026-02-25\n/bin/sh: python: command not found\n",
+      "type": "manual_custom_date"
+    },
+    {
+      "id": "21949a0c-c842-453a-b5d0-52166d6ae07d",
+      "timestamp": "2026-02-26T01:08:41.722Z",
+      "durationMs": 11,
+      "success": false,
+      "output": "",
+      "error": "Command failed: python process_data.py --date 2026-02-25\n/bin/sh: python: command not found\n",
+      "type": "manual_custom_date"
+    },
+    {
       "id": "fda2da39-641d-42c3-8d2a-38894d3882e2",
       "timestamp": "2026-02-25T21:55:00.072Z",
       "durationMs": 255172,
@@ -801,105 +900,6 @@
       "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11585 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 109036 raw packing rows in history window.\r\nAttributed 12731 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
       "error": null,
       "type": "manual_today"
-    },
-    {
-      "id": "4799d820-1f76-4c88-bdfe-59019f44a960",
-      "timestamp": "2026-02-25T19:25:00.039Z",
-      "durationMs": 243672,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11585 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 109036 raw packing rows in history window.\r\nAttributed 12731 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "2b57b34c-53f9-44da-9242-19486be6a043",
-      "timestamp": "2026-02-25T19:20:00.043Z",
-      "durationMs": 231233,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11435 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108868 raw packing rows in history window.\r\nAttributed 12641 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "2223b020-392f-4ef7-bc9c-b4ec3e7682fe",
-      "timestamp": "2026-02-25T19:20:00.063Z",
-      "durationMs": 230778,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11435 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108868 raw packing rows in history window.\r\nAttributed 12641 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "9842a6f7-9986-4144-9934-404c1a110853",
-      "timestamp": "2026-02-25T19:20:00.076Z",
-      "durationMs": 229394,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11435 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108868 raw packing rows in history window.\r\nAttributed 12641 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "4249fc8d-5742-4eda-8f86-c56b411c1e41",
-      "timestamp": "2026-02-25T19:15:00.040Z",
-      "durationMs": 241729,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11342 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108615 raw packing rows in history window.\r\nAttributed 12509 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "63f865d0-8574-4a37-9253-9415719c8cb8",
-      "timestamp": "2026-02-25T19:15:00.028Z",
-      "durationMs": 241548,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11342 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108615 raw packing rows in history window.\r\nAttributed 12509 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "72ac3ffa-90bd-4da5-bd92-1bb12de6feff",
-      "timestamp": "2026-02-25T19:15:00.053Z",
-      "durationMs": 241284,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11342 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108615 raw packing rows in history window.\r\nAttributed 12509 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "09a72ac9-29d8-4b7c-b932-162c6b83e068",
-      "timestamp": "2026-02-25T19:10:00.057Z",
-      "durationMs": 239519,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11244 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108399 raw packing rows in history window.\r\nAttributed 12393 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "4bab466c-4795-4784-acd4-8e59e3b9d5dd",
-      "timestamp": "2026-02-25T19:10:00.029Z",
-      "durationMs": 239336,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11244 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108399 raw packing rows in history window.\r\nAttributed 12393 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "2c8888c4-99fe-4ad9-9e8b-63e2e302fb5e",
-      "timestamp": "2026-02-25T19:10:00.044Z",
-      "durationMs": 237542,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11244 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108399 raw packing rows in history window.\r\nAttributed 12393 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
-    },
-    {
-      "id": "d69ebf7b-e711-4998-bb46-a6006ddbfd0d",
-      "timestamp": "2026-02-25T19:00:00.086Z",
-      "durationMs": 325318,
-      "success": true,
-      "output": "Running data extraction for date: 2026-02-25\r\nProcessing B-FLOW today deliveries (WADAT = '2026-02-25')...\r\nFetching deliveries closed (PGI'd) today...\r\nGenerated dashboard_data_ms.json\r\nGenerated dashboard_lines_ms.json\r\nGenerated dashboard_hu_ms.json\r\nGenerated dashboard_data_cvns.json\r\nGenerated dashboard_lines_cvns.json\r\nGenerated dashboard_hu_cvns.json\r\nProcessing B-FLOW backlog deliveries (WADAT < '2026-02-25')...\r\nGenerated dashboard_data_ms_backlog.json\r\nGenerated dashboard_lines_ms_backlog.json\r\nGenerated dashboard_hu_ms_backlog.json\r\nGenerated dashboard_data_cvns_backlog.json\r\nGenerated dashboard_lines_cvns_backlog.json\r\nGenerated dashboard_hu_cvns_backlog.json\r\nProcessing B-FLOW future deliveries (WADAT > '2026-02-25')...\r\nGenerated dashboard_data_ms_future.json\r\nGenerated dashboard_lines_ms_future.json\r\nGenerated dashboard_hu_ms_future.json\r\nGenerated dashboard_data_cvns_future.json\r\nGenerated dashboard_lines_cvns_future.json\r\nGenerated dashboard_hu_cvns_future.json\r\nFetching base picking data from SDS_CP_LTAP for 2026-02-25...\r\nFetching route data for 11123 unique VBELN values...\r\nFetching packing data with 5-day lookback: 20260220 to 20260225...\r\nFound 108173 raw packing rows in history window.\r\nAttributed 12267 boxes to today's activity.\r\nTransforming data...\r\nCalculating statistics...\r\nGenerated ms_picking_hourly_stats.csv\r\nGenerated ms_picking_daily_stats.csv\r\nGenerated cvns_picking_hourly_stats.csv\r\nGenerated cvns_picking_daily_stats.csv\r\nGenerated ms_packing_hourly_stats.csv\r\nGenerated ms_packing_daily_stats.csv\r\nGenerated cvns_packing_hourly_stats.csv\r\nGenerated cvns_packing_daily_stats.csv\r\nDone!\r\n",
-      "error": null,
-      "type": "manual_today"
     }
   ],
   "cronJobs": [
@@ -907,9 +907,9 @@
       "id": "25f00e90-9d68-41a1-9465-f3f10c484248",
       "name": "Daily Run",
       "expression": "*/5 7-23 * * 1-5",
-      "isActive": true,
+      "isActive": false,
       "createdAt": "2026-02-23T06:25:55.656Z",
-      "lastRun": "2026-02-25T22:05:00.211Z"
+      "lastRun": "2026-02-26T11:17:46.482Z"
     }
   ],
   "thresholds": {

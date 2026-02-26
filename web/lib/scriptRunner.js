@@ -15,7 +15,7 @@ export async function runPythonScript(customDate = null) {
     return new Promise((resolve) => {
         const scriptDir = path.join(process.cwd(), '..', 'script');
         // Use python3 on Mac, and check if we should use the venv if it exists
-        const pythonCmd = 'python';
+        const pythonCmd = 'python3';
         const command = customDate
             ? `${pythonCmd} process_data.py --date ${customDate}`
             : `${pythonCmd} process_data.py`;

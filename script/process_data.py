@@ -20,16 +20,26 @@ def main():
 
     load_dotenv()
 
+    # Connection parameters
+    conn_params = {
+        'user': os.getenv('user'),
+        'account': os.getenv('account'),
+        'role': os.getenv('role'),
+        'warehouse': os.getenv('warehouse'),
+        'database': os.getenv('database'),
+        'schema': os.getenv('schema')
+    }
+
+    # Use Programmatic Access Token if available, otherwise fallback to configured authenticator
+    token = os.getenv('SNOWFLAKE_TOKEN')
+    if token:
+        conn_params['authenticator'] = 'oauth'
+        conn_params['token'] = token
+    else:
+        conn_params['authenticator'] = os.getenv('authenticator')
+
     try:
-        conn = snowflake.connector.connect(
-            user=os.getenv('user'),
-            authenticator=os.getenv('authenticator'),
-            account=os.getenv('account'),
-            role=os.getenv('role'),
-            warehouse=os.getenv('warehouse'),
-            database=os.getenv('database'),
-            schema=os.getenv('schema')
-        )
+        conn = snowflake.connector.connect(**conn_params)
     except Exception as e:
         print(f"Failed to connect to Snowflake: {e}")
         return
@@ -647,7 +657,23 @@ def main():
     def calculate_picking_stats(df):
         if df.empty: return pd.DataFrame(), pd.DataFrame()
         
-        # 1. Identify how many work contexts (Flow/Floor) each user worked in per hour
+        # Ensure numeric
+        df['BRGEW'] = pd.to_numeric(df['BRGEW'], errors='coerce').fillna(0)
+        df['UMREZ'] = pd.to_numeric(df['UMREZ'], errors='coerce').fillna(0)
+
+        # 1. First, calculate context-wide benchmarks (Flow & Floor specific)
+        context_benchmarks = {}
+        for (flow, floor), context_df in df.groupby(['FLOW', 'FLOOR']):
+            if not context_df.empty:
+                total_lines = len(context_df)
+                total_weight = context_df['BRGEW'].sum()
+                total_items = context_df['UMREZ'].sum()
+                context_benchmarks[(flow, floor)] = {
+                    'avg_wpl': total_weight / total_lines if total_lines > 0 else 0,
+                    'avg_ipl': total_items / total_lines if total_lines > 0 else 0
+                }
+
+        # 2. Identify how many work contexts (Flow/Floor) each user worked in per hour
         context_counts = df.groupby(['QNAME', 'QDATU', 'HOUR']).apply(
             lambda x: x.groupby(['FLOW', 'FLOOR']).ngroups
         ).to_dict()
@@ -658,26 +684,58 @@ def main():
             qname, qdatu, hour, flow, floor = name
             lines = len(group)
             items = group['UMREZ'].sum()
+            weight = group['BRGEW'].sum()
             
-            # 2. Distribute the hour's base effort equally across active contexts
+            # Distribute effort
             base_effort = BREAK_MAPPING.get(hour, 1.0)
             n_contexts = context_counts.get((qname, qdatu, hour), 1)
             distributed_effort = base_effort / n_contexts
             
+            # Calculate Intensity for this specific hour in this flow/floor
+            bench = context_benchmarks.get((flow, floor), {'avg_wpl': 1, 'avg_ipl': 1})
+            wpl = weight / lines if lines > 0 else 0
+            ipl = items / lines if lines > 0 else 0
+            
+            weight_intensity = round(wpl / bench['avg_wpl'], 2) if bench['avg_wpl'] > 0 else 1.0
+            item_intensity = round(ipl / bench['avg_ipl'], 2) if bench['avg_ipl'] > 0 else 1.0
+            
             rows.append({
                 'QNAME': qname, 'QDATU': qdatu, 'HOUR': hour, 'FLOW': flow, 'FLOOR': floor,
-                'LINES_PICKED': lines, 'ITEMS_PICKED': items, 
+                'LINES_PICKED': lines, 'ITEMS_PICKED': items, 'WEIGHT_PICKED': round(weight, 2),
                 'RATIO': round(items/lines, 2) if lines > 0 else 0,
                 'EFFORT': round(distributed_effort, 2), 
-                'PRODUCTIVITY': round(lines/distributed_effort, 2) if distributed_effort > 0 else 0
+                'PRODUCTIVITY': round(lines/distributed_effort, 2) if distributed_effort > 0 else 0,
+                'WEIGHT_INTENSITY': weight_intensity,
+                'ITEM_INTENSITY': item_intensity
             })
+            
         df_h = pd.DataFrame(rows)
+        
+        # 3. Aggregate to Daily
         df_d = df_h.groupby(['QNAME', 'QDATU', 'FLOW', 'FLOOR']).agg({
-            'LINES_PICKED': 'sum', 'ITEMS_PICKED': 'sum', 'EFFORT': 'sum'
+            'LINES_PICKED': 'sum', 
+            'ITEMS_PICKED': 'sum', 
+            'WEIGHT_PICKED': 'sum',
+            'EFFORT': 'sum'
         }).reset_index()
+        
         df_d['EFFORT'] = df_d['EFFORT'].round(2)
+        df_d['WEIGHT_PICKED'] = df_d['WEIGHT_PICKED'].round(2)
         df_d['RATIO'] = (df_d['ITEMS_PICKED'] / df_d['LINES_PICKED']).round(2)
         df_d['PRODUCTIVITY'] = (df_d['LINES_PICKED'] / df_d['EFFORT']).round(2)
+        
+        # Calculate daily weighted intensities
+        def calc_daily_intensity(row):
+            bench = context_benchmarks.get((row['FLOW'], row['FLOOR']), {'avg_wpl': 1, 'avg_ipl': 1})
+            wpl = row['WEIGHT_PICKED'] / row['LINES_PICKED'] if row['LINES_PICKED'] > 0 else 0
+            ipl = row['ITEMS_PICKED'] / row['LINES_PICKED'] if row['LINES_PICKED'] > 0 else 0
+            
+            wi = round(wpl / bench['avg_wpl'], 2) if bench['avg_wpl'] > 0 else 1.0
+            ii = round(ipl / bench['avg_ipl'], 2) if bench['avg_ipl'] > 0 else 1.0
+            return pd.Series([wi, ii])
+
+        df_d[['WEIGHT_INTENSITY', 'ITEM_INTENSITY']] = df_d.apply(calc_daily_intensity, axis=1)
+        
         return df_h, df_d
 
     def calculate_packing_stats(df):

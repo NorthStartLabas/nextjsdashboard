@@ -1,190 +1,91 @@
 {
-    "open_deliveries": 3467,
-    "open_hus": 3629,
+    "open_deliveries": 439,
+    "open_hus": 511,
     "hu_summary": {
-        "total": 3629,
-        "picked": 453,
-        "not_picked": 3176,
-        "avg_lines_per_hu": 2.3,
-        "avg_items_per_hu": 3.84
+        "total": 511,
+        "picked": 0,
+        "not_picked": 511,
+        "avg_lines_per_hu": 2.82,
+        "avg_items_per_hu": 7.05
     },
     "priorities": {
-        "10": 43,
-        "20": 289,
-        "25": 127,
-        "30": 7846,
-        "35": 31,
-        "60": 3
+        "10": 9,
+        "20": 22,
+        "25": 31,
+        "30": 1378,
+        "35": 1,
+        "60": 2
     },
     "priority_hus": {
-        "10": 26,
-        "20": 118,
-        "25": 81,
-        "30": 3389,
-        "35": 12,
-        "60": 3
+        "10": 8,
+        "20": 18,
+        "25": 8,
+        "30": 474,
+        "35": 1,
+        "60": 2
     },
     "cutoffs": {
-        "2026-02-26 11:38:39": {
-            "total_deliveries": 5,
-            "dp10_deliveries": 0,
-            "total_lines": 14,
-            "picked_lines": 3,
-            "dp10_lines": 0,
-            "total_hus": 5,
-            "picked_hus": 1
-        },
-        "2026-02-26 12:59:59": {
-            "total_deliveries": 6,
-            "dp10_deliveries": 0,
-            "total_lines": 16,
-            "picked_lines": 3,
-            "dp10_lines": 0,
-            "total_hus": 10,
-            "picked_hus": 0
-        },
-        "2026-02-26 13:59:59": {
-            "total_deliveries": 57,
-            "dp10_deliveries": 1,
-            "total_lines": 793,
-            "picked_lines": 567,
-            "dp10_lines": 1,
-            "total_hus": 198,
-            "picked_hus": 8
-        },
-        "2026-02-26 15:37:56": {
-            "total_deliveries": 2,
-            "dp10_deliveries": 0,
-            "total_lines": 5,
-            "picked_lines": 0,
-            "dp10_lines": 0,
-            "total_hus": 2,
-            "picked_hus": 0
-        },
-        "2026-02-26 15:59:59": {
-            "total_deliveries": 380,
-            "dp10_deliveries": 3,
-            "total_lines": 1148,
-            "picked_lines": 131,
-            "dp10_lines": 9,
-            "total_hus": 423,
-            "picked_hus": 46
-        },
-        "2026-02-26 16:14:59": {
-            "total_deliveries": 221,
-            "dp10_deliveries": 3,
-            "total_lines": 433,
-            "picked_lines": 78,
-            "dp10_lines": 3,
-            "total_hus": 226,
-            "picked_hus": 58
-        },
-        "2026-02-26 16:59:59": {
-            "total_deliveries": 42,
-            "dp10_deliveries": 0,
-            "total_lines": 73,
-            "picked_lines": 11,
-            "dp10_lines": 0,
-            "total_hus": 42,
-            "picked_hus": 9
-        },
-        "2026-02-26 17:59:59": {
-            "total_deliveries": 76,
-            "dp10_deliveries": 0,
-            "total_lines": 76,
-            "picked_lines": 22,
-            "dp10_lines": 0,
-            "total_hus": 76,
-            "picked_hus": 22
-        },
-        "2026-02-26 18:29:59": {
-            "total_deliveries": 220,
-            "dp10_deliveries": 4,
-            "total_lines": 307,
-            "picked_lines": 38,
-            "dp10_lines": 6,
-            "total_hus": 223,
-            "picked_hus": 35
-        },
-        "2026-02-26 18:59:59": {
-            "total_deliveries": 734,
-            "dp10_deliveries": 0,
-            "total_lines": 1752,
-            "picked_lines": 141,
-            "dp10_lines": 0,
-            "total_hus": 792,
-            "picked_hus": 89
-        },
-        "2026-02-26 19:14:59": {
-            "total_deliveries": 2,
-            "dp10_deliveries": 0,
-            "total_lines": 2,
-            "picked_lines": 0,
-            "dp10_lines": 0,
-            "total_hus": 2,
-            "picked_hus": 0
-        },
-        "2026-02-26 19:29:59": {
-            "total_deliveries": 320,
-            "dp10_deliveries": 0,
-            "total_lines": 535,
-            "picked_lines": 64,
-            "dp10_lines": 0,
-            "total_hus": 244,
-            "picked_hus": 36
-        },
-        "2026-02-26 19:59:59": {
-            "total_deliveries": 100,
-            "dp10_deliveries": 3,
-            "total_lines": 273,
-            "picked_lines": 14,
-            "dp10_lines": 12,
-            "total_hus": 105,
-            "picked_hus": 8
-        },
-        "2026-02-26 20:29:59": {
-            "total_deliveries": 119,
-            "dp10_deliveries": 0,
-            "total_lines": 192,
-            "picked_lines": 7,
-            "dp10_lines": 0,
-            "total_hus": 99,
-            "picked_hus": 7
-        },
-        "2026-02-26 20:59:59": {
-            "total_deliveries": 1120,
-            "dp10_deliveries": 8,
-            "total_lines": 2636,
-            "picked_lines": 203,
-            "dp10_lines": 10,
-            "total_hus": 1124,
-            "picked_hus": 134
-        },
-        "2026-02-26 21:59:59": {
-            "total_deliveries": 2,
-            "dp10_deliveries": 0,
-            "total_lines": 4,
-            "picked_lines": 0,
-            "dp10_lines": 0,
-            "total_hus": 3,
-            "picked_hus": 0
-        },
-        "2026-02-26 22:59:59": {
+        "2026-02-27 09:00:00": {
             "total_deliveries": 1,
             "dp10_deliveries": 0,
-            "total_lines": 2,
+            "total_lines": 1,
             "picked_lines": 0,
             "dp10_lines": 0,
             "total_hus": 1,
             "picked_hus": 0
         },
-        "2026-02-27 13:59:59": {
-            "total_deliveries": 19,
+        "2026-02-27 11:41:42": {
+            "total_deliveries": 2,
             "dp10_deliveries": 0,
-            "total_lines": 32,
+            "total_lines": 8,
             "picked_lines": 0,
             "dp10_lines": 0,
-            "total_hus": 21,
+            "total_hus": 2,
+            "picked_hus": 0
+        },
+        "2026-02-27 13:59:59": {
+            "total_deliveries": 51,
+            "dp10_deliveries": 0,
+            "total_lines": 928,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 152,
+            "picked_hus": 0
+        },
+        "2026-02-27 15:59:59": {
+            "total_deliveries": 49,
+            "dp10_deliveries": 0,
+            "total_lines": 93,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 50,
+            "picked_hus": 0
+        },
+        "2026-02-27 16:14:59": {
+            "total_deliveries": 20,
+            "dp10_deliveries": 0,
+            "total_lines": 27,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 20,
+            "picked_hus": 0
+        },
+        "2026-02-27 16:59:59": {
+            "total_deliveries": 5,
+            "dp10_deliveries": 0,
+            "total_lines": 5,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 5,
+            "picked_hus": 0
+        },
+        "2026-02-27 18:29:59": {
+            "total_deliveries": 166,
+            "dp10_deliveries": 1,
+            "total_lines": 205,
+            "picked_lines": 0,
+            "dp10_lines": 2,
+            "total_hus": 173,
             "picked_hus": 0
         },
         "2026-02-27 18:59:59": {
@@ -197,21 +98,57 @@
             "picked_hus": 0
         },
         "2026-02-27 19:29:59": {
-            "total_deliveries": 2,
+            "total_deliveries": 41,
             "dp10_deliveries": 1,
-            "total_lines": 3,
+            "total_lines": 38,
             "picked_lines": 0,
             "dp10_lines": 1,
-            "total_hus": 3,
+            "total_hus": 14,
+            "picked_hus": 0
+        },
+        "2026-02-27 19:59:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 1,
+            "total_lines": 2,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 1,
+            "picked_hus": 0
+        },
+        "2026-02-27 20:29:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
             "picked_hus": 0
         },
         "2026-02-27 20:59:59": {
-            "total_deliveries": 6,
+            "total_deliveries": 55,
+            "dp10_deliveries": 3,
+            "total_lines": 65,
+            "picked_lines": 0,
+            "dp10_lines": 3,
+            "total_hus": 55,
+            "picked_hus": 0
+        },
+        "2026-02-27 23:59:00": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 1,
+            "total_lines": 1,
+            "picked_lines": 0,
+            "dp10_lines": 1,
+            "total_hus": 1,
+            "picked_hus": 0
+        },
+        "2026-02-27 23:59:58": {
+            "total_deliveries": 2,
             "dp10_deliveries": 0,
-            "total_lines": 16,
+            "total_lines": 2,
             "picked_lines": 0,
             "dp10_lines": 0,
-            "total_hus": 6,
+            "total_hus": 2,
             "picked_hus": 0
         },
         "2026-03-02 00:00:00": {
@@ -224,12 +161,12 @@
             "picked_hus": 0
         },
         "2026-03-02 13:59:59": {
-            "total_deliveries": 1,
+            "total_deliveries": 4,
             "dp10_deliveries": 0,
-            "total_lines": 1,
+            "total_lines": 8,
             "picked_lines": 0,
             "dp10_lines": 0,
-            "total_hus": 1,
+            "total_hus": 5,
             "picked_hus": 0
         },
         "2026-03-02 15:59:59": {
@@ -242,12 +179,12 @@
             "picked_hus": 0
         },
         "2026-03-02 17:59:59": {
-            "total_deliveries": 1,
+            "total_deliveries": 2,
             "dp10_deliveries": 0,
-            "total_lines": 1,
+            "total_lines": 11,
             "picked_lines": 0,
             "dp10_lines": 0,
-            "total_hus": 1,
+            "total_hus": 2,
             "picked_hus": 0
         },
         "2026-03-02 18:59:59": {
@@ -275,6 +212,24 @@
             "picked_lines": 0,
             "dp10_lines": 0,
             "total_hus": 3,
+            "picked_hus": 0
+        },
+        "2026-03-03 15:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 1,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 1,
+            "picked_hus": 0
+        },
+        "2026-03-03 16:59:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 1,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 1,
             "picked_hus": 0
         },
         "2026-03-03 18:29:59": {
@@ -322,6 +277,24 @@
             "total_hus": 0,
             "picked_hus": 0
         },
+        "2026-03-05 16:14:59": {
+            "total_deliveries": 1,
+            "dp10_deliveries": 0,
+            "total_lines": 1,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 1,
+            "picked_hus": 0
+        },
+        "2026-03-05 19:29:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 1,
+            "total_lines": 7,
+            "picked_lines": 0,
+            "dp10_lines": 1,
+            "total_hus": 3,
+            "picked_hus": 0
+        },
         "2026-03-10 19:29:59": {
             "total_deliveries": 1,
             "dp10_deliveries": 0,
@@ -332,7 +305,7 @@
             "picked_hus": 0
         },
         "2026-03-16 12:59:59": {
-            "total_deliveries": 5,
+            "total_deliveries": 4,
             "dp10_deliveries": 0,
             "total_lines": 0,
             "picked_lines": 0,
@@ -341,9 +314,18 @@
             "picked_hus": 0
         },
         "2026-03-17 12:59:59": {
-            "total_deliveries": 3,
+            "total_deliveries": 2,
             "dp10_deliveries": 0,
             "total_lines": 0,
+            "picked_lines": 0,
+            "dp10_lines": 0,
+            "total_hus": 0,
+            "picked_hus": 0
+        },
+        "2026-03-18 12:59:59": {
+            "total_deliveries": 2,
+            "dp10_deliveries": 0,
+            "total_lines": 14,
             "picked_lines": 0,
             "dp10_lines": 0,
             "total_hus": 0,
@@ -361,131 +343,51 @@
     },
     "summary": {
         "total": {
-            "lines": 8339,
-            "items": 13937,
-            "kg": 6348.9,
-            "vol": 62549516.09
+            "lines": 1443,
+            "items": 3605,
+            "kg": 1469.02,
+            "vol": 14237339.63
         },
         "picked": {
-            "lines": 1282,
-            "items": 2260,
-            "kg": 659.03,
-            "vol": 6077414.5
+            "lines": 0,
+            "items": 0,
+            "kg": 0.0,
+            "vol": 0.0
         },
         "not_picked": {
-            "lines": 7057,
-            "items": 11677,
-            "kg": 5689.87,
-            "vol": 56472101.58
+            "lines": 1443,
+            "items": 3605,
+            "kg": 1469.02,
+            "vol": 14237339.63
         }
     },
     "vltyp_distribution": {
         "S12": {
             "total": {
-                "lines": 3237,
-                "items": 6642,
-                "kg": 1320.07,
-                "vol": 12138855.81
+                "lines": 390,
+                "items": 2432,
+                "kg": 316.73,
+                "vol": 3395917.75
             },
             "picked": {
-                "lines": 305,
-                "items": 1155,
-                "kg": 166.58,
-                "vol": 1768037.07
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
             },
             "not_picked": {
-                "lines": 2932,
-                "items": 5487,
-                "kg": 1153.48,
-                "vol": 10370818.74
-            }
-        },
-        "S22": {
-            "total": {
-                "lines": 843,
-                "items": 2382,
-                "kg": 687.23,
-                "vol": 6204318.38
-            },
-            "picked": {
-                "lines": 90,
-                "items": 201,
-                "kg": 67.57,
-                "vol": 630410.67
-            },
-            "not_picked": {
-                "lines": 753,
-                "items": 2181,
-                "kg": 619.66,
-                "vol": 5573907.71
-            }
-        },
-        "LO2": {
-            "total": {
-                "lines": 1480,
-                "items": 1601,
-                "kg": 1647.01,
-                "vol": 19856304.0
-            },
-            "picked": {
-                "lines": 123,
-                "items": 131,
-                "kg": 146.3,
-                "vol": 2130537.58
-            },
-            "not_picked": {
-                "lines": 1357,
-                "items": 1470,
-                "kg": 1500.72,
-                "vol": 17725766.43
-            }
-        },
-        "S14": {
-            "total": {
-                "lines": 435,
-                "items": 435,
-                "kg": 194.46,
-                "vol": 813837.63
-            },
-            "picked": {
-                "lines": 152,
-                "items": 152,
-                "kg": 59.14,
-                "vol": 207283.96
-            },
-            "not_picked": {
-                "lines": 283,
-                "items": 283,
-                "kg": 135.32,
-                "vol": 606553.67
+                "lines": 390,
+                "items": 2432,
+                "kg": 316.73,
+                "vol": 3395917.75
             }
         },
         "S24": {
             "total": {
-                "lines": 2194,
-                "items": 2218,
-                "kg": 1008.48,
-                "vol": 5435730.24
-            },
-            "picked": {
-                "lines": 609,
-                "items": 609,
-                "kg": 216.95,
-                "vol": 1291300.63
-            },
-            "not_picked": {
-                "lines": 1585,
-                "items": 1609,
-                "kg": 791.53,
-                "vol": 4144429.61
-            }
-        },
-        "DB2": {
-            "total": {
-                "lines": 26,
-                "items": 33,
-                "kg": 756.77,
-                "vol": 11431682.27
+                "lines": 636,
+                "items": 636,
+                "kg": 246.49,
+                "vol": 1352490.08
             },
             "picked": {
                 "lines": 0,
@@ -494,18 +396,18 @@
                 "vol": 0.0
             },
             "not_picked": {
-                "lines": 26,
-                "items": 33,
-                "kg": 756.77,
-                "vol": 11431682.27
+                "lines": 636,
+                "items": 636,
+                "kg": 246.49,
+                "vol": 1352490.08
             }
         },
-        "CB2": {
+        "LO2": {
             "total": {
-                "lines": 45,
-                "items": 157,
-                "kg": 402.76,
-                "vol": 4511995.58
+                "lines": 192,
+                "items": 212,
+                "kg": 267.28,
+                "vol": 2937204.78
             },
             "picked": {
                 "lines": 0,
@@ -514,18 +416,18 @@
                 "vol": 0.0
             },
             "not_picked": {
-                "lines": 45,
-                "items": 157,
-                "kg": 402.76,
-                "vol": 4511995.58
+                "lines": 192,
+                "items": 212,
+                "kg": 267.28,
+                "vol": 2937204.78
             }
         },
-        "NE4": {
+        "S14": {
             "total": {
-                "lines": 36,
-                "items": 36,
-                "kg": 71.77,
-                "vol": 228767.25
+                "lines": 104,
+                "items": 104,
+                "kg": 30.77,
+                "vol": 111803.34
             },
             "picked": {
                 "lines": 0,
@@ -534,260 +436,220 @@
                 "vol": 0.0
             },
             "not_picked": {
-                "lines": 36,
-                "items": 36,
-                "kg": 71.77,
-                "vol": 228767.25
+                "lines": 104,
+                "items": 104,
+                "kg": 30.77,
+                "vol": 111803.34
             }
         },
         "P22": {
             "total": {
-                "lines": 43,
-                "items": 433,
-                "kg": 260.35,
-                "vol": 1928024.92
+                "lines": 4,
+                "items": 4,
+                "kg": 3.65,
+                "vol": 58867.42
             },
             "picked": {
-                "lines": 3,
-                "items": 12,
-                "kg": 2.48,
-                "vol": 49844.6
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
             },
             "not_picked": {
-                "lines": 40,
-                "items": 421,
-                "kg": 257.87,
-                "vol": 1878180.32
+                "lines": 4,
+                "items": 4,
+                "kg": 3.65,
+                "vol": 58867.42
+            }
+        },
+        "S22": {
+            "total": {
+                "lines": 84,
+                "items": 172,
+                "kg": 55.89,
+                "vol": 602267.19
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 84,
+                "items": 172,
+                "kg": 55.89,
+                "vol": 602267.19
+            }
+        },
+        "QAH": {
+            "total": {
+                "lines": 14,
+                "items": 14,
+                "kg": 3.82,
+                "vol": 6399.16
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 14,
+                "items": 14,
+                "kg": 3.82,
+                "vol": 6399.16
+            }
+        },
+        "NE4": {
+            "total": {
+                "lines": 5,
+                "items": 5,
+                "kg": 8.55,
+                "vol": 29333.9
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 5,
+                "items": 5,
+                "kg": 8.55,
+                "vol": 29333.9
+            }
+        },
+        "DB2": {
+            "total": {
+                "lines": 9,
+                "items": 9,
+                "kg": 494.24,
+                "vol": 5459904.0
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 9,
+                "items": 9,
+                "kg": 494.24,
+                "vol": 5459904.0
+            }
+        },
+        "CB2": {
+            "total": {
+                "lines": 5,
+                "items": 17,
+                "kg": 41.6,
+                "vol": 283152.0
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 5,
+                "items": 17,
+                "kg": 41.6,
+                "vol": 283152.0
             }
         }
     },
     "kober_distribution": {
-        "1.3": {
+        "1.1": {
             "total": {
-                "lines": 1042,
-                "items": 1709,
-                "kg": 411.58,
-                "vol": 3802093.82
+                "lines": 151,
+                "items": 681,
+                "kg": 102.25,
+                "vol": 1370205.82
             },
             "picked": {
-                "lines": 147,
-                "items": 589,
-                "kg": 56.27,
-                "vol": 532674.29
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
             },
             "not_picked": {
-                "lines": 895,
-                "items": 1120,
-                "kg": 355.31,
-                "vol": 3269419.53
+                "lines": 151,
+                "items": 681,
+                "kg": 102.25,
+                "vol": 1370205.82
             }
         },
         "2.4": {
             "total": {
-                "lines": 70,
-                "items": 106,
-                "kg": 27.22,
-                "vol": 174725.24
+                "lines": 52,
+                "items": 56,
+                "kg": 15.96,
+                "vol": 91238.73
             },
             "picked": {
-                "lines": 15,
-                "items": 15,
-                "kg": 4.04,
-                "vol": 26358.0
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
             },
             "not_picked": {
-                "lines": 55,
-                "items": 91,
-                "kg": 23.19,
-                "vol": 148367.24
+                "lines": 52,
+                "items": 56,
+                "kg": 15.96,
+                "vol": 91238.73
             }
         },
         "1.2": {
             "total": {
-                "lines": 1015,
-                "items": 1375,
-                "kg": 454.85,
-                "vol": 4672583.93
+                "lines": 113,
+                "items": 195,
+                "kg": 65.67,
+                "vol": 693000.3
             },
             "picked": {
-                "lines": 75,
-                "items": 182,
-                "kg": 34.38,
-                "vol": 259821.25
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
             },
             "not_picked": {
-                "lines": 940,
-                "items": 1193,
-                "kg": 420.48,
-                "vol": 4412762.68
-            }
-        },
-        "1.L": {
-            "total": {
-                "lines": 558,
-                "items": 662,
-                "kg": 389.37,
-                "vol": 4611357.15
-            },
-            "picked": {
-                "lines": 47,
-                "items": 55,
-                "kg": 25.18,
-                "vol": 299981.88
-            },
-            "not_picked": {
-                "lines": 511,
-                "items": 607,
-                "kg": 364.19,
-                "vol": 4311375.27
-            }
-        },
-        "2.2": {
-            "total": {
-                "lines": 491,
-                "items": 1165,
-                "kg": 381.66,
-                "vol": 2634553.65
-            },
-            "picked": {
-                "lines": 96,
-                "items": 163,
-                "kg": 75.28,
-                "vol": 476435.1
-            },
-            "not_picked": {
-                "lines": 395,
-                "items": 1002,
-                "kg": 306.38,
-                "vol": 2158118.55
-            }
-        },
-        "1.4": {
-            "total": {
-                "lines": 607,
-                "items": 1663,
-                "kg": 736.74,
-                "vol": 9403295.46
-            },
-            "picked": {
-                "lines": 10,
-                "items": 14,
-                "kg": 11.12,
-                "vol": 100038.76
-            },
-            "not_picked": {
-                "lines": 597,
-                "items": 1649,
-                "kg": 725.61,
-                "vol": 9303256.7
-            }
-        },
-        "1.1": {
-            "total": {
-                "lines": 1003,
-                "items": 2332,
-                "kg": 536.99,
-                "vol": 5450370.12
-            },
-            "picked": {
-                "lines": 225,
-                "items": 522,
-                "kg": 123.95,
-                "vol": 1082786.73
-            },
-            "not_picked": {
-                "lines": 778,
-                "items": 1810,
-                "kg": 413.04,
-                "vol": 4367583.39
+                "lines": 113,
+                "items": 195,
+                "kg": 65.67,
+                "vol": 693000.3
             }
         },
         "2.1": {
             "total": {
-                "lines": 1829,
-                "items": 2047,
-                "kg": 637.07,
-                "vol": 4734830.06
+                "lines": 544,
+                "items": 588,
+                "kg": 160.72,
+                "vol": 1109926.25
             },
             "picked": {
-                "lines": 551,
-                "items": 584,
-                "kg": 158.94,
-                "vol": 1142988.11
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
             },
             "not_picked": {
-                "lines": 1278,
-                "items": 1463,
-                "kg": 478.13,
-                "vol": 3591841.94
+                "lines": 544,
+                "items": 588,
+                "kg": 160.72,
+                "vol": 1109926.25
             }
         },
         "2.L": {
             "total": {
-                "lines": 447,
-                "items": 455,
-                "kg": 773.69,
-                "vol": 8813209.88
-            },
-            "picked": {
-                "lines": 36,
-                "items": 36,
-                "kg": 34.75,
-                "vol": 385197.03
-            },
-            "not_picked": {
-                "lines": 411,
-                "items": 419,
-                "kg": 738.94,
-                "vol": 8428012.85
-            }
-        },
-        "3.L": {
-            "total": {
-                "lines": 436,
-                "items": 440,
-                "kg": 452.79,
-                "vol": 6144423.31
-            },
-            "picked": {
-                "lines": 31,
-                "items": 31,
-                "kg": 81.81,
-                "vol": 1396887.05
-            },
-            "not_picked": {
-                "lines": 405,
-                "items": 409,
-                "kg": 370.99,
-                "vol": 4747536.27
-            }
-        },
-        "2.3": {
-            "total": {
-                "lines": 647,
-                "items": 1282,
-                "kg": 649.76,
-                "vol": 4095939.68
-            },
-            "picked": {
-                "lines": 37,
-                "items": 48,
-                "kg": 46.26,
-                "vol": 275930.09
-            },
-            "not_picked": {
-                "lines": 610,
-                "items": 1234,
-                "kg": 603.49,
-                "vol": 3820009.58
-            }
-        },
-        "PA1": {
-            "total": {
-                "lines": 45,
-                "items": 157,
-                "kg": 402.76,
-                "vol": 4511995.58
+                "lines": 108,
+                "items": 108,
+                "kg": 160.96,
+                "vol": 1664583.68
             },
             "picked": {
                 "lines": 0,
@@ -796,18 +658,18 @@
                 "vol": 0.0
             },
             "not_picked": {
-                "lines": 45,
-                "items": 157,
-                "kg": 402.76,
-                "vol": 4511995.58
+                "lines": 108,
+                "items": 108,
+                "kg": 160.96,
+                "vol": 1664583.68
             }
         },
-        "2.N": {
+        "1.4": {
             "total": {
-                "lines": 36,
-                "items": 36,
-                "kg": 71.77,
-                "vol": 228767.25
+                "lines": 83,
+                "items": 1490,
+                "kg": 527.11,
+                "vol": 5744670.96
             },
             "picked": {
                 "lines": 0,
@@ -816,58 +678,18 @@
                 "vol": 0.0
             },
             "not_picked": {
-                "lines": 36,
-                "items": 36,
-                "kg": 71.77,
-                "vol": 228767.25
-            }
-        },
-        "0.L": {
-            "total": {
-                "lines": 39,
-                "items": 44,
-                "kg": 31.16,
-                "vol": 287313.66
-            },
-            "picked": {
-                "lines": 9,
-                "items": 9,
-                "kg": 4.55,
-                "vol": 48471.62
-            },
-            "not_picked": {
-                "lines": 30,
-                "items": 35,
-                "kg": 26.6,
-                "vol": 238842.04
+                "lines": 83,
+                "items": 1490,
+                "kg": 527.11,
+                "vol": 5744670.96
             }
         },
         "2.P": {
             "total": {
-                "lines": 43,
-                "items": 433,
-                "kg": 260.35,
-                "vol": 1928024.92
-            },
-            "picked": {
-                "lines": 3,
-                "items": 12,
-                "kg": 2.48,
-                "vol": 49844.6
-            },
-            "not_picked": {
-                "lines": 40,
-                "items": 421,
-                "kg": 257.87,
-                "vol": 1878180.32
-            }
-        },
-        "1.5": {
-            "total": {
-                "lines": 31,
-                "items": 31,
-                "kg": 131.14,
-                "vol": 1056032.38
+                "lines": 4,
+                "items": 4,
+                "kg": 3.65,
+                "vol": 58867.42
             },
             "picked": {
                 "lines": 0,
@@ -876,96 +698,296 @@
                 "vol": 0.0
             },
             "not_picked": {
-                "lines": 31,
-                "items": 31,
-                "kg": 131.14,
-                "vol": 1056032.38
+                "lines": 4,
+                "items": 4,
+                "kg": 3.65,
+                "vol": 58867.42
+            }
+        },
+        "1.5": {
+            "total": {
+                "lines": 21,
+                "items": 21,
+                "kg": 89.59,
+                "vol": 736308.13
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 21,
+                "items": 21,
+                "kg": 89.59,
+                "vol": 736308.13
+            }
+        },
+        "2.3": {
+            "total": {
+                "lines": 71,
+                "items": 87,
+                "kg": 101.25,
+                "vol": 570602.3
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 71,
+                "items": 87,
+                "kg": 101.25,
+                "vol": 570602.3
+            }
+        },
+        "2.2": {
+            "total": {
+                "lines": 53,
+                "items": 77,
+                "kg": 24.45,
+                "vol": 182989.99
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 53,
+                "items": 77,
+                "kg": 24.45,
+                "vol": 182989.99
+            }
+        },
+        "3.L": {
+            "total": {
+                "lines": 39,
+                "items": 39,
+                "kg": 55.03,
+                "vol": 700909.21
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 39,
+                "items": 39,
+                "kg": 55.03,
+                "vol": 700909.21
+            }
+        },
+        "nan": {
+            "total": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            }
+        },
+        "1.3": {
+            "total": {
+                "lines": 135,
+                "items": 158,
+                "kg": 57.11,
+                "vol": 423439.89
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 135,
+                "items": 158,
+                "kg": 57.11,
+                "vol": 423439.89
+            }
+        },
+        "1.L": {
+            "total": {
+                "lines": 40,
+                "items": 60,
+                "kg": 47.49,
+                "vol": 542724.21
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 40,
+                "items": 60,
+                "kg": 47.49,
+                "vol": 542724.21
+            }
+        },
+        "2.N": {
+            "total": {
+                "lines": 5,
+                "items": 5,
+                "kg": 8.55,
+                "vol": 29333.9
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 5,
+                "items": 5,
+                "kg": 8.55,
+                "vol": 29333.9
+            }
+        },
+        "PA1": {
+            "total": {
+                "lines": 5,
+                "items": 17,
+                "kg": 41.6,
+                "vol": 283152.0
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 5,
+                "items": 17,
+                "kg": 41.6,
+                "vol": 283152.0
+            }
+        },
+        "0.L": {
+            "total": {
+                "lines": 5,
+                "items": 5,
+                "kg": 3.8,
+                "vol": 28987.68
+            },
+            "picked": {
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
+            },
+            "not_picked": {
+                "lines": 5,
+                "items": 5,
+                "kg": 3.8,
+                "vol": 28987.68
             }
         }
     },
     "floors": {
         "first_floor": {
             "total": {
-                "lines": 3708,
-                "items": 7113,
-                "kg": 1586.3,
-                "vol": 13181460.69,
-                "deliveries": 1623,
-                "dp10_deliveries": 14,
-                "dp10_lines": 22
+                "lines": 499,
+                "items": 2541,
+                "kg": 356.05,
+                "vol": 3537055.0,
+                "deliveries": 250,
+                "dp10_deliveries": 6,
+                "dp10_lines": 6
             },
             "picked": {
-                "lines": 457,
-                "items": 1307,
-                "kg": 225.72,
-                "vol": 1975321.03
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
             },
             "not_picked": {
-                "lines": 3251,
-                "items": 5806,
-                "kg": 1360.58,
-                "vol": 11206139.66
+                "lines": 499,
+                "items": 2541,
+                "kg": 356.05,
+                "vol": 3537055.0
             },
             "hu_summary": {
-                "total": 1775,
-                "picked": 276,
-                "not_picked": 1499
+                "total": 345,
+                "picked": 0,
+                "not_picked": 345
             }
         },
         "second_floor": {
             "total": {
-                "lines": 3037,
-                "items": 4600,
-                "kg": 1695.71,
-                "vol": 11640048.62,
-                "deliveries": 1058,
+                "lines": 720,
+                "items": 808,
+                "kg": 302.38,
+                "vol": 1954757.27,
+                "deliveries": 102,
                 "dp10_deliveries": 1,
                 "dp10_lines": 1
             },
             "picked": {
-                "lines": 699,
-                "items": 810,
-                "kg": 284.52,
-                "vol": 1921711.3
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
             },
             "not_picked": {
-                "lines": 2338,
-                "items": 3790,
-                "kg": 1411.19,
-                "vol": 9718337.32
+                "lines": 720,
+                "items": 808,
+                "kg": 302.38,
+                "vol": 1954757.27
             },
             "hu_summary": {
-                "total": 1273,
-                "picked": 116,
-                "not_picked": 1157
+                "total": 181,
+                "picked": 0,
+                "not_picked": 181
             }
         },
         "ground_floor": {
             "total": {
-                "lines": 1551,
-                "items": 1791,
-                "kg": 2806.54,
-                "vol": 35799981.86,
-                "deliveries": 687,
-                "dp10_deliveries": 9,
-                "dp10_lines": 20
+                "lines": 206,
+                "items": 238,
+                "kg": 803.11,
+                "vol": 8680260.78,
+                "deliveries": 70,
+                "dp10_deliveries": 1,
+                "dp10_lines": 2
             },
             "picked": {
-                "lines": 123,
-                "items": 131,
-                "kg": 146.3,
-                "vol": 2130537.58
+                "lines": 0,
+                "items": 0,
+                "kg": 0.0,
+                "vol": 0.0
             },
             "not_picked": {
-                "lines": 1428,
-                "items": 1660,
-                "kg": 2660.24,
-                "vol": 33669444.28
+                "lines": 206,
+                "items": 238,
+                "kg": 803.11,
+                "vol": 8680260.78
             },
             "hu_summary": {
-                "total": 954,
-                "picked": 63,
-                "not_picked": 891
+                "total": 163,
+                "picked": 0,
+                "not_picked": 163
             }
         }
     }

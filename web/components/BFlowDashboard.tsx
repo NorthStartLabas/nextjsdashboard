@@ -365,6 +365,497 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
 
 
 
+
+    const isSpecialLayout = true; // All dashboards now use the premium unified layout
+
+    const renderClosedOverallCard = () => (
+        scenario === 'today' && data?.closed_today && (
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative group w-full"
+            >
+                <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border transition-all group">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
+                        <CardTitle className="text-sm font-medium">Closed Overall Today</CardTitle>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
+                                <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Deliveries</p>
+                                <p className="text-xl font-black text-zinc-100">{data.closed_today.deliveries.toLocaleString()}</p>
+                            </div>
+                            <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
+                                <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Handling Units</p>
+                                <p className="text-xl font-black text-zinc-100">{data.closed_today.hus.toLocaleString()}</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 bg-emerald-600/5 rounded-xl border border-emerald-600/10">
+                                <p className="text-[10px] font-bold uppercase text-emerald-600/60 tracking-tight mb-1">Lines</p>
+                                <p className="text-xl font-black text-emerald-500">{data.closed_today.lines.toLocaleString()}</p>
+                            </div>
+                            <div className="p-3 bg-purple-600/5 rounded-xl border border-purple-600/10">
+                                <p className="text-[10px] font-bold uppercase text-purple-600/60 tracking-tight mb-1">Items</p>
+                                <p className="text-xl font-black text-purple-500">{data.closed_today.items.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </motion.div>
+        )
+    );
+
+    const renderClosedWeightVolumeCard = () => (
+        scenario === 'today' && data?.closed_today && (
+            <div className="grid grid-cols-2 gap-4">
+                <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl shadow-none border">
+                    <CardContent className="p-4 space-y-1 text-center">
+                        <Weight className="w-3.5 h-3.5 text-zinc-500 mx-auto mb-2" />
+                        <p className="text-[9px] font-bold uppercase text-zinc-500">Closed Weight (KG)</p>
+                        <p className="text-sm font-bold text-zinc-200">{data.closed_today.kg.toLocaleString()}</p>
+                    </CardContent>
+                </Card>
+                <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl shadow-none border">
+                    <CardContent className="p-4 space-y-1 text-center">
+                        <Maximize2 className="w-3.5 h-3.5 text-zinc-500 mx-auto mb-2" />
+                        <p className="text-[9px] font-bold uppercase text-zinc-500">Closed Volume (M³)</p>
+                        <p className="text-sm font-bold text-zinc-200">{(data.closed_today.vol).toLocaleString(undefined, { maximumFractionDigits: 3 })}</p>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    );
+
+    const renderOpenLinesCard = () => (
+        <Card
+            className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border cursor-pointer hover:bg-zinc-900/40 transition-all group"
+            onClick={() => {
+                fetchDetailedLines();
+                setIsLinesModalOpen(true);
+            }}
+        >
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
+                <CardTitle className="text-sm font-medium">Open Lines</CardTitle>
+                <PieChart className="h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
+            </CardHeader>
+            <CardContent className="pt-6">
+                <div className="text-5xl font-black text-white">{data?.summary.total.lines.toLocaleString()}</div>
+                <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs text-zinc-500 font-medium">Total pending picking lines</p>
+                    <Maximize2 className="h-3 w-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+            </CardContent>
+        </Card>
+    );
+
+    const renderHandlingUnitsCard = () => (
+        <Card
+            className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border cursor-pointer hover:bg-zinc-900/40 transition-all group"
+            onClick={() => {
+                fetchDetailedHU();
+                setIsHUModalOpen(true);
+            }}
+        >
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
+                <CardTitle className="text-sm font-medium">Handling Units</CardTitle>
+                <Box className="h-4 w-4 text-blue-500 group-hover:scale-110 transition-transform" />
+            </CardHeader>
+            <CardContent className="pt-6 space-y-5">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="text-5xl font-black text-white">{(data?.open_hus || 0).toLocaleString()}</div>
+                        <p className="text-xs text-zinc-500 font-medium mt-1">Total pending HUs</p>
+                    </div>
+                </div>
+
+                {data?.hu_summary && (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 bg-emerald-600/5 rounded-xl border border-emerald-600/10">
+                                <p className="text-[10px] font-bold uppercase text-emerald-600/60 tracking-tight mb-1">Picked</p>
+                                <p className="text-xl font-black text-emerald-600">{data.hu_summary.picked.toLocaleString()}</p>
+                            </div>
+                            <div className="p-3 bg-red-600/5 rounded-xl border border-red-600/10">
+                                <p className="text-[10px] font-bold uppercase text-red-600/60 tracking-tight mb-1">Remaining</p>
+                                <p className="text-xl font-black text-[#ef4444]">{data.hu_summary.not_picked.toLocaleString()}</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
+                                <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Lines / HU</p>
+                                <p className="text-xl font-black text-zinc-100">{data.hu_summary.avg_lines_per_hu}</p>
+                            </div>
+                            <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
+                                <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Items / HU</p>
+                                <p className="text-xl font-black text-zinc-100">{data.hu_summary.avg_items_per_hu}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+
+    const renderDeliveriesItemsCard = () => (
+        <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl shadow-none border">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
+                <CardTitle className="text-sm font-medium">Deliveries & Items</CardTitle>
+                <Layers className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6 flex-1">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
+                        <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Open Deliveries</p>
+                        <p className="text-xl font-black text-zinc-100">{data?.open_deliveries.toLocaleString()}</p>
+                    </div>
+                    <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
+                        <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Open Items</p>
+                        <p className="text-xl font-black text-zinc-100">{data?.summary.total.items.toLocaleString()}</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-emerald-600/5 rounded-xl border border-emerald-600/10">
+                        <p className="text-[10px] font-bold uppercase text-emerald-600/60 tracking-tight mb-1">Picked Lines</p>
+                        <p className="text-xl font-black text-emerald-600">{data?.summary.picked.lines.toLocaleString()}</p>
+                    </div>
+                    <div className="p-3 bg-red-600/5 rounded-xl border border-red-600/10">
+                        <p className="text-[10px] font-bold uppercase text-red-600/60 tracking-tight mb-1">Not Picked Lines</p>
+                        <p className="text-xl font-black text-[#ef4444]">{((data?.summary.total.lines || 0) - (data?.summary.picked.lines || 0)).toLocaleString()}</p>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
+    const renderWeightVolumeCard = () => (
+        <div className="grid grid-cols-2 gap-4">
+            <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl shadow-none border">
+                <CardContent className="p-4 space-y-1 text-center">
+                    <Weight className="w-3.5 h-3.5 text-emerald-500 mx-auto mb-2" />
+                    <p className="text-[9px] font-bold uppercase text-zinc-500">Open Weight (KG)</p>
+                    <p className="text-sm font-bold text-zinc-200">{data?.summary.total.kg.toLocaleString()}</p>
+                </CardContent>
+            </Card>
+            <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl shadow-none border">
+                <CardContent className="p-4 space-y-1 text-center">
+                    <Maximize2 className="w-3.5 h-3.5 text-purple-500 mx-auto mb-2" />
+                    <p className="text-[9px] font-bold uppercase text-zinc-500">Open Volume (M³)</p>
+                    <p className="text-sm font-bold text-zinc-200">{((data?.summary.total.vol || 0) / 1000000).toLocaleString(undefined, { maximumFractionDigits: 3 })}</p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+
+    const renderPriorityCard = () => (
+        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border flex flex-col overflow-hidden h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
+                <CardTitle className="text-sm font-medium">Delivery Priorities</CardTitle>
+                <ClipboardList className="h-4 w-4 text-[#ef4444]" />
+            </CardHeader>
+            <CardContent className={cn("pt-6 pr-4", isSpecialLayout ? "h-[300px]" : (type === 'cvns' ? "h-[260px]" : "h-[540px]"))}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={priorityData} margin={{ top: 10, right: 30, left: -20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                        <XAxis
+                            dataKey="name"
+                            axisLine={false}
+                            tickLine={false}
+                            stroke="#52525b"
+                            fontSize={10}
+                            fontWeight="bold"
+                            tickFormatter={(v) => v.replace('Prio ', 'DP')}
+                        />
+                        <YAxis axisLine={false} tickLine={false} stroke="#52525b" fontSize={10} fontWeight="bold" />
+                        <RechartsTooltip
+                            cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                            content={({ active, payload, label }) => {
+                                if (active && payload && payload.length) {
+                                    const d = priorityData.find(p => p.name === label);
+                                    return (
+                                        <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-xl shadow-2xl backdrop-blur-md">
+                                            <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                                Priority Status
+                                            </div>
+                                            <div className="flex flex-col gap-0.5">
+                                                <div className="flex items-baseline gap-3">
+                                                    <span className="text-xl font-black text-white">{String(label || '').replace('Prio ', 'DP')}</span>
+                                                </div>
+                                                <div className="flex flex-col gap-0.5 mt-1 border-t border-zinc-900 pt-1.5">
+                                                    <span className="text-xs font-bold text-zinc-400">{(payload[0]?.value as number ?? 0).toLocaleString()} Lines</span>
+                                                    <span className="text-[10px] font-medium text-blue-400">{(d?.hus || 0).toLocaleString()} Handling Units</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }}
+                        />
+                        <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32} fillOpacity={0.8}>
+                            {priorityData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.name.includes('10') ? '#ef4444' : COLORS[index % COLORS.length]} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </CardContent>
+        </Card>
+    );
+
+    const renderCutoffCard = () => (
+        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border flex flex-col overflow-hidden h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
+                <div className="flex items-center gap-2">
+                    <CardTitle className="text-sm font-medium">Cutoff Times</CardTitle>
+                    <button
+                        onClick={() => setIsCutoffModalOpen(true)}
+                        className="p-1 hover:bg-white/5 rounded-md transition-colors group/expand"
+                        title="Expand view"
+                    >
+                        <Maximize2 className="w-3.5 h-3.5 text-zinc-500 group-hover/expand:text-amber-500 transition-colors" />
+                    </button>
+                </div>
+                <Timer className="h-4 w-4 text-amber-500" />
+            </CardHeader>
+            <CardContent className={cn("pt-6 overflow-y-auto custom-scrollbar px-6", isSpecialLayout ? "h-[300px]" : (type === 'cvns' ? "h-[260px]" : "h-[540px]"))}>
+                <div className="space-y-4 pb-6">
+                    {formattedCutoffs.map((cutoff: any, i) => (
+                        <div key={i} className="p-4 bg-zinc-950/40 rounded-xl border border-zinc-900/50 hover:bg-zinc-900/30 transition-all group space-y-3">
+                            <div className="flex items-center justify-between border-b border-zinc-900/50 pb-2">
+                                <div className="flex items-center gap-3">
+                                    <Clock className="w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-500" />
+                                    <span className="text-sm font-black text-zinc-200 tracking-wider">
+                                        {cutoff.label}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">Open Lines</p>
+                                    <p className="text-base font-black text-white">{(cutoff.total_lines || 0).toLocaleString()}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">Picked Lines</p>
+                                    <p className="text-base font-black text-emerald-500">{(cutoff.picked_lines || 0).toLocaleString()}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-[#f59e0b]/60 uppercase tracking-tighter">Handling Units</p>
+                                    <div className="flex items-baseline gap-1.5">
+                                        <p className="text-base font-black text-[#f59e0b]">{(cutoff.total_hus || 0).toLocaleString()}</p>
+                                        <p className="text-[10px] font-bold text-emerald-500/80">({(cutoff.picked_hus || 0)})</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-blue-600/60 uppercase tracking-tighter">Deliveries</p>
+                                    <p className="text-base font-black text-blue-500">{(cutoff.total_deliveries || 0).toLocaleString()}</p>
+                                </div>
+                                <div className="col-span-2 pt-2 border-t border-zinc-900/50">
+                                    <div className="flex items-baseline gap-2">
+                                        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">DP10 Lines</p>
+                                        <p className="text-lg font-black text-[#ef4444]">{(cutoff.dp10_lines || 0).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+
+    const renderStorageDistribution = () => (
+        <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl border shadow-none flex flex-col overflow-hidden h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
+                <CardTitle className="text-sm font-medium">Storage Distribution</CardTitle>
+                <Layout className="h-4 w-4 text-white" />
+            </CardHeader>
+            <CardContent className={cn("p-0 overflow-y-auto custom-scrollbar", isSpecialLayout ? "h-[300px]" : (type === 'cvns' ? "h-[260px]" : "h-[540px]"))}>
+                <div className="space-y-8 p-6">
+                    <div className="space-y-4">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 border-b border-zinc-900/50 pb-2 flex justify-between">
+                            <span>STORAGE TYPE</span>
+                        </h4>
+                        <div className="space-y-4">
+                            {sortedVltyp.map(([vltyp, metrics]) => (
+                                <div key={vltyp} className="space-y-2.5 group">
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-[11px] font-black text-zinc-500 group-hover:text-zinc-200 transition-colors uppercase">{vltyp}</span>
+                                        <span className="text-[10px] font-mono font-bold text-zinc-700">{metrics.total.lines.toLocaleString()} lines</span>
+                                    </div>
+                                    <div className="h-1 bg-zinc-950 rounded-full overflow-hidden border border-zinc-900/50">
+                                        <div
+                                            className="h-full bg-amber-500/80 group-hover:bg-blue-500 transition-all duration-300"
+                                            style={{ width: `${(metrics.total.lines / (data?.summary.total.lines || 1)) * 100}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 border-b border-zinc-900/50 pb-2">PICKING AREA</h4>
+                        <div className="space-y-4">
+                            {sortedKober.map(([kober, metrics]) => (
+                                <div key={kober} className="space-y-2.5 group">
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-[11px] font-black text-zinc-500 group-hover:text-zinc-200 transition-colors uppercase">{kober || 'Unknown'}</span>
+                                        <span className="text-[10px] font-mono font-bold text-zinc-700">{metrics.total.lines.toLocaleString()} lines</span>
+                                    </div>
+                                    <div className="h-1 bg-zinc-950 rounded-full overflow-hidden border border-zinc-900/50">
+                                        <div
+                                            className="h-full bg-amber-500/80 group-hover:bg-blue-500 transition-all duration-300"
+                                            style={{ width: `${(metrics.total.lines / (data?.summary.total.lines || 1)) * 100}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
+    const renderPickingChart = () => (
+        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden h-full">
+            <CardHeader className="pb-4 border-b border-zinc-800/40 bg-zinc-900/10">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <CardTitle className="text-sm font-bold text-zinc-200 uppercase tracking-tight">Picking Performance</CardTitle>
+                        <CardDescription className="text-[11px] text-zinc-500 font-medium">
+                            Bars represent lines picked per hour, white line tracks active personnel.
+                        </CardDescription>
+                    </div>
+                    <Zap className="h-4 w-4 text-blue-500" />
+                </div>
+            </CardHeader>
+            <CardContent className="pt-6 pb-2">
+                {pickingChartData.length > 0 ? (
+                    <div className={cn("w-full", isSpecialLayout ? "h-[320px]" : "h-[300px]")}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={pickingChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+                                <CartesianGrid strokeDasharray="4 4" stroke="#27272a" vertical={false} />
+                                <XAxis dataKey="hour" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                                <YAxis yAxisId="left" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis yAxisId="right" orientation="right" hide />
+                                <RechartsTooltip
+                                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                                    contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '12px' }}
+                                />
+                                <Bar yAxisId="left" dataKey="lines" name="Lines Picked" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={32} fillOpacity={0.8} />
+                                <Line yAxisId="right" type="monotone" dataKey="users" name="Active Users" stroke="#e4e4e7" strokeWidth={2} dot={{ r: 3, fill: '#09090b', strokeWidth: 2, stroke: '#e4e4e7' }} activeDot={{ r: 5, strokeWidth: 0, fill: '#fff' }} />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
+                ) : (
+                    <div className="h-[300px] flex flex-col items-center justify-center text-zinc-500 gap-3">
+                        <Activity className="h-8 w-8 opacity-20" />
+                        <p className="text-sm font-medium text-zinc-600 uppercase tracking-tighter">No activity data available</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+
+    const renderConveyorChart = () => (
+        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden h-full">
+            <CardHeader className="pb-4 border-b border-zinc-800/40 bg-zinc-900/10">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <CardTitle className="text-sm font-bold text-zinc-200 uppercase tracking-tight">
+                            {type === 'ms' ? 'Conveyor Activity' : 'Packing Performance'}
+                        </CardTitle>
+                        <CardDescription className="text-[11px] text-zinc-500 font-medium">
+                            {type === 'ms'
+                                ? 'Bars represent boxes processed by the conveyor system per hour.'
+                                : 'Bars represent boxes packed per hour, white line tracks active personnel.'}
+                        </CardDescription>
+                    </div>
+                    <Package className="h-4 w-4 text-emerald-500" />
+                </div>
+            </CardHeader>
+            <CardContent className="pt-6 pb-2">
+                {packingChartData.length > 0 ? (
+                    <div className={cn("w-full", isSpecialLayout ? "h-[320px]" : "h-[300px]")}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={packingChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+                                <CartesianGrid strokeDasharray="4 4" stroke="#27272a" vertical={false} />
+                                <XAxis dataKey="hour" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                                <YAxis yAxisId="left" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis yAxisId="right" orientation="right" hide />
+                                <RechartsTooltip
+                                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                                    contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '12px' }}
+                                />
+                                <Bar yAxisId="left" dataKey="boxes" name="Boxes Packed" fill={type === 'ms' ? '#10b981' : '#a855f7'} radius={[4, 4, 0, 0]} barSize={32} fillOpacity={0.8} />
+                                {type !== 'ms' && (
+                                    <Line yAxisId="right" type="monotone" dataKey="users" name="Active Users" stroke="#e4e4e7" strokeWidth={2} dot={{ r: 3, fill: '#09090b', strokeWidth: 2, stroke: '#e4e4e7' }} activeDot={{ r: 5, strokeWidth: 0, fill: '#fff' }} />
+                                )}
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
+                ) : (
+                    <div className="h-[300px] flex flex-col items-center justify-center text-zinc-500 gap-3">
+                        <Box className="h-8 w-8 opacity-20" />
+                        <p className="text-sm font-medium text-zinc-600 uppercase tracking-tighter">No activity data available</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+
+    const renderFloorOperations = () => type === 'cvns' && data?.floors && (
+        <div className="w-full">
+            <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl border shadow-none overflow-hidden h-full">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
+                    <CardTitle className="text-sm font-medium">Floor Operations</CardTitle>
+                    <Activity className="h-4 w-4 text-emerald-500" />
+                </CardHeader>
+                <div className="overflow-x-auto h-[220px] overflow-y-auto custom-scrollbar">
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="border-zinc-900/50 hover:bg-transparent bg-zinc-900/5">
+                                <TableHead className="text-[8px] font-black uppercase text-zinc-600 pl-6 h-10">Floor</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-zinc-600 text-center h-10">Open Lines</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-emerald-600/60 text-center h-10">Picked Lines</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-[#f59e0b]/60 text-center h-10">Open HUs</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-blue-600/60 text-center h-10">Open Deliv.</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-indigo-600/60 text-center h-10">DP10 Deliv.</TableHead>
+                                <TableHead className="text-[8px] font-black uppercase text-[#ef4444]/60 text-right pr-6 h-10">DP10 Lines</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {Object.entries(data.floors).map(([floor, metrics]: [string, any]) => (
+                                <TableRow key={floor} className="border-zinc-900/20 hover:bg-zinc-900/30 transition-colors">
+                                    <TableCell className="font-black text-zinc-400 uppercase text-[10px] pl-6 py-3">{floor.replace('_', ' ')}</TableCell>
+                                    <TableCell className="text-center text-[11px] font-bold text-zinc-200 py-3 font-mono">{metrics.total.lines.toLocaleString()}</TableCell>
+                                    <TableCell className="text-center text-[11px] font-bold text-emerald-500 py-3 font-mono">{metrics.picked.lines.toLocaleString()}</TableCell>
+                                    <TableCell className="text-center text-[11px] font-bold text-[#f59e0b] py-3 font-mono">
+                                        <div className="flex flex-col">
+                                            <span>{metrics.hu_summary?.total || 0}</span>
+                                            <span className="text-[9px] opacity-60">({metrics.hu_summary?.picked || 0} picked)</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-center text-[11px] font-bold text-blue-500 py-3 font-mono">{(metrics.total.deliveries || 0).toLocaleString()}</TableCell>
+                                    <TableCell className="text-center text-[11px] font-bold text-indigo-500 py-3 font-mono">{(metrics.total.dp10_deliveries || 0).toLocaleString()}</TableCell>
+                                    <TableCell className="text-right pr-6 text-[11px] font-black text-[#ef4444] py-3 font-mono">{(metrics.total.dp10_lines || 0).toLocaleString()}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            </Card>
+        </div>
+    );
+
     return (
         <div className="min-h-screen bg-[#09090b] text-zinc-100 p-4 md:p-8 font-sans selection:bg-white/10 selection:text-white">
             <div className="max-w-[1700px] mx-auto space-y-8">
@@ -465,483 +956,38 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
-
-                            {/* COLUMN 1: Summary */}
-                            <div className={cn("space-y-6 flex flex-col", type === 'cvns' && "xl:row-span-2")}>
-                                {scenario === 'today' && data.closed_today && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: -20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="relative group col-span-1 md:col-span-2 xl:col-span-1"
-                                    >
-                                        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border transition-all group">
-                                            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
-                                                <CardTitle className="text-sm font-medium">Closed Overall Today</CardTitle>
-                                                <CheckCircle2 className="h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-                                            </CardHeader>
-                                            <CardContent className="pt-6 space-y-4">
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
-                                                        <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Deliveries</p>
-                                                        <p className="text-xl font-black text-zinc-100">{data.closed_today.deliveries.toLocaleString()}</p>
-                                                    </div>
-                                                    <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
-                                                        <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Handl. Units</p>
-                                                        <p className="text-xl font-black text-zinc-100">{data.closed_today.hus.toLocaleString()}</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="p-3 bg-emerald-600/5 rounded-xl border border-emerald-600/10">
-                                                        <p className="text-[10px] font-bold uppercase text-emerald-600/60 tracking-tight mb-1">Lines</p>
-                                                        <p className="text-xl font-black text-emerald-500">{data.closed_today.lines.toLocaleString()}</p>
-                                                    </div>
-                                                    <div className="p-3 bg-emerald-600/5 rounded-xl border border-emerald-600/10">
-                                                        <p className="text-[10px] font-bold uppercase text-emerald-600/60 tracking-tight mb-1">Items</p>
-                                                        <p className="text-xl font-black text-emerald-500">{data.closed_today.items.toLocaleString()}</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="p-3 bg-blue-600/5 rounded-xl border border-blue-600/10">
-                                                        <p className="text-[10px] font-bold uppercase text-blue-600/60 tracking-tight mb-1">Weight (KG)</p>
-                                                        <p className="text-xl font-black text-blue-500">{data.closed_today.kg.toLocaleString()}</p>
-                                                    </div>
-                                                    <div className="p-3 bg-blue-600/5 rounded-xl border border-blue-600/10">
-                                                        <p className="text-[10px] font-bold uppercase text-blue-600/60 tracking-tight mb-1">Vol (M³)</p>
-                                                        <p className="text-xl font-black text-blue-500">{data.closed_today.vol.toLocaleString()}</p>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-                                )}
-
-                                <div className="grid grid-cols-1 gap-6">
-                                    <Card
-                                        className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border cursor-pointer hover:bg-zinc-900/40 transition-all group"
-                                        onClick={() => {
-                                            fetchDetailedLines();
-                                            setIsLinesModalOpen(true);
-                                        }}
-                                    >
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
-                                            <CardTitle className="text-sm font-medium">Open Lines</CardTitle>
-                                            <PieChart className="h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-                                        </CardHeader>
-                                        <CardContent className="pt-6">
-                                            <div className="text-5xl font-black text-white">{data.summary.total.lines.toLocaleString()}</div>
-                                            <div className="flex items-center justify-between mt-1">
-                                                <p className="text-xs text-zinc-500 font-medium">Total pending picking lines</p>
-                                                <Maximize2 className="h-3 w-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-
-                                    <Card
-                                        className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border cursor-pointer hover:bg-zinc-900/40 transition-all group"
-                                        onClick={() => {
-                                            fetchDetailedHU();
-                                            setIsHUModalOpen(true);
-                                        }}
-                                    >
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
-                                            <CardTitle className="text-sm font-medium">Handling Units</CardTitle>
-                                            <Box className="h-4 w-4 text-blue-500 group-hover:scale-110 transition-transform" />
-                                        </CardHeader>
-                                        <CardContent className="pt-6 space-y-5">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <div className="text-5xl font-black text-white">{(data.open_hus || 0).toLocaleString()}</div>
-                                                    <p className="text-xs text-zinc-500 font-medium mt-1">Total pending HUs</p>
-                                                </div>
-                                            </div>
-
-                                            {data.hu_summary && (
-                                                <div className="space-y-4">
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div className="p-3 bg-emerald-600/5 rounded-xl border border-emerald-600/10">
-                                                            <p className="text-[10px] font-bold uppercase text-emerald-600/60 tracking-tight mb-1">Picked</p>
-                                                            <p className="text-xl font-black text-emerald-600">{data.hu_summary.picked.toLocaleString()}</p>
-                                                        </div>
-                                                        <div className="p-3 bg-red-600/5 rounded-xl border border-red-600/10">
-                                                            <p className="text-[10px] font-bold uppercase text-red-600/60 tracking-tight mb-1">Remaining</p>
-                                                            <p className="text-xl font-black text-[#ef4444]">{data.hu_summary.not_picked.toLocaleString()}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
-                                                            <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Lns / HU</p>
-                                                            <p className="text-xl font-black text-zinc-100">{data.hu_summary.avg_lines_per_hu}</p>
-                                                        </div>
-                                                        <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
-                                                            <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Itm / HU</p>
-                                                            <p className="text-xl font-black text-zinc-100">{data.hu_summary.avg_items_per_hu}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
+                        {isSpecialLayout ? (
+                            <div className="grid grid-cols-4 gap-6 items-start">
+                                {/* COLUMN 1: VERTICAL STACK */}
+                                <div className="col-span-1 space-y-6">
+                                    {renderClosedOverallCard()}
+                                    {renderOpenLinesCard()}
+                                    {renderDeliveriesItemsCard()}
+                                    {renderHandlingUnitsCard()}
+                                    {renderWeightVolumeCard()}
+                                    {renderClosedWeightVolumeCard()}
                                 </div>
 
-                                <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl shadow-none border">
-                                    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
-                                        <CardTitle className="text-sm font-medium">Deliveries & Items</CardTitle>
-                                        <Layers className="h-4 w-4 text-blue-600" />
-                                    </CardHeader>
-                                    <CardContent className="space-y-6 pt-6 flex-1">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
-                                                <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Open Deliveries</p>
-                                                <p className="text-xl font-black text-zinc-100">{data.open_deliveries.toLocaleString()}</p>
-                                            </div>
-                                            <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-900/50">
-                                                <p className="text-[10px] font-bold uppercase text-zinc-600 tracking-tight mb-1">Open Items</p>
-                                                <p className="text-xl font-black text-zinc-100">{data.summary.total.items.toLocaleString()}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="p-3 bg-emerald-600/5 rounded-xl border border-emerald-600/10">
-                                                <p className="text-[10px] font-bold uppercase text-emerald-600/60 tracking-tight mb-1">Picked Lines</p>
-                                                <p className="text-xl font-black text-emerald-600">{data.summary.picked.lines.toLocaleString()}</p>
-                                            </div>
-                                            <div className="p-3 bg-red-600/5 rounded-xl border border-red-600/10">
-                                                <p className="text-[10px] font-bold uppercase text-red-600/60 tracking-tight mb-1">Not Picked Lines</p>
-                                                <p className="text-xl font-black text-[#ef4444]">{(data.summary.total.lines - data.summary.picked.lines).toLocaleString()}</p>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl shadow-none border">
-                                        <CardContent className="p-4 space-y-1 text-center">
-                                            <Weight className="w-3.5 h-3.5 text-emerald-500 mx-auto mb-2" />
-                                            <p className="text-[9px] font-bold uppercase text-zinc-500">Open Weight (KG)</p>
-                                            <p className="text-sm font-bold text-zinc-200">{data.summary.total.kg.toLocaleString()}</p>
-                                        </CardContent>
-                                    </Card>
-                                    <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl shadow-none border">
-                                        <CardContent className="p-4 space-y-1 text-center">
-                                            <Maximize2 className="w-3.5 h-3.5 text-purple-500 mx-auto mb-2" />
-                                            <p className="text-[9px] font-bold uppercase text-zinc-500">Open Volume (M³)</p>
-                                            <p className="text-sm font-bold text-zinc-200">{(data.summary.total.vol / 1000000).toLocaleString(undefined, { maximumFractionDigits: 3 })}</p>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col">
-                                <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border flex flex-col overflow-hidden h-full">
-                                    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
-                                        <CardTitle className="text-sm font-medium">Delivery Priorities</CardTitle>
-                                        <ClipboardList className="h-4 w-4 text-[#ef4444]" />
-                                    </CardHeader>
-                                    <CardContent className={cn("pt-6 pr-4", type === 'cvns' ? "h-[260px]" : "h-[540px]")}>
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={priorityData} margin={{ top: 10, right: 30, left: -20, bottom: 5 }}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                                                <XAxis
-                                                    dataKey="name"
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    stroke="#52525b"
-                                                    fontSize={10}
-                                                    fontWeight="bold"
-                                                    tickFormatter={(v) => v.replace('Prio ', 'DP')}
-                                                />
-                                                <YAxis axisLine={false} tickLine={false} stroke="#52525b" fontSize={10} fontWeight="bold" />
-                                                <RechartsTooltip
-                                                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-                                                    content={({ active, payload, label }) => {
-                                                        if (active && payload && payload.length) {
-                                                            const d = priorityData.find(p => p.name === label);
-                                                            return (
-                                                                <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-xl shadow-2xl backdrop-blur-md">
-                                                                    <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 flex items-center gap-2">
-                                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                                                        Priority Status
-                                                                    </div>
-                                                                    <div className="flex flex-col gap-0.5">
-                                                                        <div className="flex items-baseline gap-3">
-                                                                            <span className="text-xl font-black text-white">{String(label || '').replace('Prio ', 'DP')}</span>
-                                                                        </div>
-                                                                        <div className="flex flex-col gap-0.5 mt-1 border-t border-zinc-900 pt-1.5">
-                                                                            <span className="text-xs font-bold text-zinc-400">{(payload[0]?.value as number ?? 0).toLocaleString()} Lines</span>
-                                                                            <span className="text-[10px] font-medium text-blue-400">{(d?.hus || 0).toLocaleString()} Handling Units</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        }
-                                                        return null;
-                                                    }}
-                                                />
-                                                <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32} fillOpacity={0.8}>
-                                                    {priorityData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.name.includes('10') ? '#ef4444' : COLORS[index % COLORS.length]} />
-                                                    ))}
-                                                </Bar>
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            <div className="flex flex-col">
-                                <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border flex flex-col overflow-hidden h-full">
-                                    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
-                                        <div className="flex items-center gap-2">
-                                            <CardTitle className="text-sm font-medium">Cutoff Times</CardTitle>
-                                            <button
-                                                onClick={() => setIsCutoffModalOpen(true)}
-                                                className="p-1 hover:bg-white/5 rounded-md transition-colors group/expand"
-                                                title="Expand view"
-                                            >
-                                                <Maximize2 className="w-3.5 h-3.5 text-zinc-500 group-hover/expand:text-amber-500 transition-colors" />
-                                            </button>
-                                        </div>
-                                        <Timer className="h-4 w-4 text-amber-500" />
-                                    </CardHeader>
-                                    <CardContent className={cn("pt-6 overflow-y-auto custom-scrollbar px-6", type === 'cvns' ? "h-[260px]" : "h-[540px]")}>
-                                        <div className="space-y-4 pb-6">
-                                            {formattedCutoffs.map((cutoff: any, i) => (
-                                                <div key={i} className="p-4 bg-zinc-950/40 rounded-xl border border-zinc-900/50 hover:bg-zinc-900/30 transition-all group space-y-3">
-                                                    <div className="flex items-center justify-between border-b border-zinc-900/50 pb-2">
-                                                        <div className="flex items-center gap-3">
-                                                            <Clock className="w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-500" />
-                                                            <span className="text-sm font-black text-zinc-200 tracking-wider">
-                                                                {cutoff.label}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">Open Lines</p>
-                                                            <p className="text-base font-black text-white">{(cutoff.total_lines || 0).toLocaleString()}</p>
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">Picked Lines</p>
-                                                            <p className="text-base font-black text-emerald-500">{(cutoff.picked_lines || 0).toLocaleString()}</p>
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-[#f59e0b]/60 uppercase tracking-tighter">Handling Units</p>
-                                                            <div className="flex items-baseline gap-1.5">
-                                                                <p className="text-base font-black text-[#f59e0b]">{(cutoff.total_hus || 0).toLocaleString()}</p>
-                                                                <p className="text-[10px] font-bold text-emerald-500/80">({(cutoff.picked_hus || 0)})</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-blue-600/60 uppercase tracking-tighter">Deliveries</p>
-                                                            <p className="text-base font-black text-blue-500">{(cutoff.total_deliveries || 0).toLocaleString()}</p>
-                                                        </div>
-                                                        <div className="col-span-2 pt-2 border-t border-zinc-900/50">
-                                                            <div className="flex items-baseline gap-2">
-                                                                <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">DP10 Lines</p>
-                                                                <p className="text-lg font-black text-[#ef4444]">{(cutoff.dp10_lines || 0).toLocaleString()}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            {/* COLUMN 4: Distribution */}
-                            <div className="flex flex-col">
-                                <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl border shadow-none flex flex-col overflow-hidden h-full">
-                                    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
-                                        <CardTitle className="text-sm font-medium">Storage Distribution</CardTitle>
-                                        <Layout className="h-4 w-4 text-white" />
-                                    </CardHeader>
-                                    <CardContent className={cn("p-0 overflow-y-auto custom-scrollbar", type === 'cvns' ? "h-[260px]" : "h-[540px]")}>
-                                        <div className="space-y-8 p-6">
-                                            <div className="space-y-4">
-                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 border-b border-zinc-900/50 pb-2 flex justify-between">
-                                                    <span>STORAGE TYPE</span>
-                                                </h4>
-                                                <div className="space-y-4">
-                                                    {sortedVltyp.map(([vltyp, metrics]) => (
-                                                        <div key={vltyp} className="space-y-2.5 group">
-                                                            <div className="flex justify-between items-end">
-                                                                <span className="text-[11px] font-black text-zinc-500 group-hover:text-zinc-200 transition-colors uppercase">{vltyp}</span>
-                                                                <span className="text-[10px] font-mono font-bold text-zinc-700">{metrics.total.lines.toLocaleString()} lines</span>
-                                                            </div>
-                                                            <div className="h-1 bg-zinc-950 rounded-full overflow-hidden border border-zinc-900/50">
-                                                                <div
-                                                                    className="h-full bg-amber-500/80 group-hover:bg-blue-500 transition-all duration-300"
-                                                                    style={{ width: `${(metrics.total.lines / data.summary.total.lines) * 100}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 border-b border-zinc-900/50 pb-2">PICKING AREA</h4>
-                                                <div className="space-y-4">
-                                                    {sortedKober.map(([kober, metrics]) => (
-                                                        <div key={kober} className="space-y-2.5 group">
-                                                            <div className="flex justify-between items-end">
-                                                                <span className="text-[11px] font-black text-zinc-500 group-hover:text-zinc-200 transition-colors uppercase">{kober || 'Unknown'}</span>
-                                                                <span className="text-[10px] font-mono font-bold text-zinc-700">{metrics.total.lines.toLocaleString()} lines</span>
-                                                            </div>
-                                                            <div className="h-1 bg-zinc-950 rounded-full overflow-hidden border border-zinc-900/50">
-                                                                <div
-                                                                    className="h-full bg-amber-500/80 group-hover:bg-blue-500 transition-all duration-300"
-                                                                    style={{ width: `${(metrics.total.lines / data.summary.total.lines) * 100}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            {type === 'cvns' && data.floors && (
-                                <div className="xl:col-span-3">
-                                    <Card className="bg-zinc-900/20 border-zinc-800/40 rounded-2xl border shadow-none overflow-hidden h-full">
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
-                                            <CardTitle className="text-sm font-medium">Floor Operations</CardTitle>
-                                            <Activity className="h-4 w-4 text-emerald-500" />
-                                        </CardHeader>
-                                        <div className="overflow-x-auto h-[220px] overflow-y-auto custom-scrollbar">
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow className="border-zinc-900/50 hover:bg-transparent bg-zinc-900/5">
-                                                        <TableHead className="text-[8px] font-black uppercase text-zinc-600 pl-6 h-10">Floor</TableHead>
-                                                        <TableHead className="text-[8px] font-black uppercase text-zinc-600 text-center h-10">Open Lines</TableHead>
-                                                        <TableHead className="text-[8px] font-black uppercase text-emerald-600/60 text-center h-10">Picked Lines</TableHead>
-                                                        <TableHead className="text-[8px] font-black uppercase text-[#f59e0b]/60 text-center h-10">Open HUs</TableHead>
-                                                        <TableHead className="text-[8px] font-black uppercase text-blue-600/60 text-center h-10">Open Deliv.</TableHead>
-                                                        <TableHead className="text-[8px] font-black uppercase text-indigo-600/60 text-center h-10">DP10 Deliv.</TableHead>
-                                                        <TableHead className="text-[8px] font-black uppercase text-[#ef4444]/60 text-right pr-6 h-10">DP10 Lines</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {Object.entries(data.floors).map(([floor, metrics]) => (
-                                                        <TableRow key={floor} className="border-zinc-900/20 hover:bg-zinc-900/30 transition-colors">
-                                                            <TableCell className="font-black text-zinc-400 uppercase text-[10px] pl-6 py-3">{floor.replace('_', ' ')}</TableCell>
-                                                            <TableCell className="text-center text-[11px] font-bold text-zinc-200 py-3 font-mono">{metrics.total.lines.toLocaleString()}</TableCell>
-                                                            <TableCell className="text-center text-[11px] font-bold text-emerald-500 py-3 font-mono">{metrics.picked.lines.toLocaleString()}</TableCell>
-                                                            <TableCell className="text-center text-[11px] font-bold text-[#f59e0b] py-3 font-mono">
-                                                                <div className="flex flex-col">
-                                                                    <span>{metrics.hu_summary?.total || 0}</span>
-                                                                    <span className="text-[9px] opacity-60">({metrics.hu_summary?.picked || 0} picked)</span>
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell className="text-center text-[11px] font-bold text-blue-500 py-3 font-mono">{(metrics.total.deliveries || 0).toLocaleString()}</TableCell>
-                                                            <TableCell className="text-center text-[11px] font-bold text-indigo-500 py-3 font-mono">{(metrics.total.dp10_deliveries || 0).toLocaleString()}</TableCell>
-                                                            <TableCell className="text-right pr-6 text-[11px] font-black text-[#ef4444] py-3 font-mono">{(metrics.total.dp10_lines || 0).toLocaleString()}</TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </div>
-                                    </Card>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Activity Charts Section */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                            {/* Picking Chart */}
-                            <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
-                                <CardHeader className="pb-4 border-b border-zinc-800/40 bg-zinc-900/10">
-                                    <div className="flex items-center justify-between">
-                                        <div className="space-y-1">
-                                            <CardTitle className="text-sm font-bold text-zinc-200 uppercase tracking-tight">Picking Performance</CardTitle>
-                                            <CardDescription className="text-[11px] text-zinc-500 font-medium">
-                                                Bars represent lines picked per hour, white line tracks active personnel.
-                                            </CardDescription>
-                                        </div>
-                                        <Zap className="h-4 w-4 text-blue-500" />
+                                {/* COLUMNS 2-4: TOP ROW + CHARTS */}
+                                <div className="col-span-3 space-y-6">
+                                    <div className="grid grid-cols-3 gap-6 items-start">
+                                        {renderPriorityCard()}
+                                        {renderCutoffCard()}
+                                        {renderStorageDistribution()}
                                     </div>
-                                </CardHeader>
-                                <CardContent className="pt-6 pb-2">
-                                    {pickingChartData.length > 0 ? (
-                                        <div className="h-[300px] w-full">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <ComposedChart data={pickingChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
-                                                    <CartesianGrid strokeDasharray="4 4" stroke="#27272a" vertical={false} />
-                                                    <XAxis dataKey="hour" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                                                    <YAxis yAxisId="left" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
-                                                    <YAxis yAxisId="right" orientation="right" hide />
-                                                    <RechartsTooltip
-                                                        cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                                                        contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '12px' }}
-                                                    />
-                                                    <Bar yAxisId="left" dataKey="lines" name="Lines Picked" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={32} fillOpacity={0.8} />
-                                                    <Line yAxisId="right" type="monotone" dataKey="users" name="Active Users" stroke="#e4e4e7" strokeWidth={2} dot={{ r: 3, fill: '#09090b', strokeWidth: 2, stroke: '#e4e4e7' }} activeDot={{ r: 5, strokeWidth: 0, fill: '#fff' }} />
-                                                </ComposedChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    ) : (
-                                        <div className="h-[300px] flex flex-col items-center justify-center text-zinc-500 gap-3">
-                                            <Activity className="h-8 w-8 opacity-20" />
-                                            <p className="text-sm font-medium text-zinc-600 uppercase tracking-tighter">No activity data available</p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
 
-                            {/* Packing Chart */}
-                            <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
-                                <CardHeader className="pb-4 border-b border-zinc-800/40 bg-zinc-900/10">
-                                    <div className="flex items-center justify-between">
-                                        <div className="space-y-1">
-                                            <CardTitle className="text-sm font-bold text-zinc-200 uppercase tracking-tight">
-                                                {type === 'ms' ? 'Conveyor Activity' : 'Packing Performance'}
-                                            </CardTitle>
-                                            <CardDescription className="text-[11px] text-zinc-500 font-medium">
-                                                {type === 'ms'
-                                                    ? 'Bars represent boxes processed by the conveyor system per hour.'
-                                                    : 'Bars represent boxes packed per hour, white line tracks active personnel.'}
-                                            </CardDescription>
-                                        </div>
-                                        <Package className="h-4 w-4 text-emerald-500" />
+                                    {/* Floor Operations for CVNS */}
+                                    {renderFloorOperations()}
+
+                                    <div className="w-full">
+                                        {renderPickingChart()}
                                     </div>
-                                </CardHeader>
-                                <CardContent className="pt-6 pb-2">
-                                    {packingChartData.length > 0 ? (
-                                        <div className="h-[300px] w-full">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <ComposedChart data={packingChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
-                                                    <CartesianGrid strokeDasharray="4 4" stroke="#27272a" vertical={false} />
-                                                    <XAxis dataKey="hour" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                                                    <YAxis yAxisId="left" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
-                                                    <YAxis yAxisId="right" orientation="right" hide />
-                                                    <RechartsTooltip
-                                                        cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                                                        contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '12px' }}
-                                                    />
-                                                    <Bar yAxisId="left" dataKey="boxes" name="Boxes Packed" fill={type === 'ms' ? '#10b981' : '#a855f7'} radius={[4, 4, 0, 0]} barSize={32} fillOpacity={0.8} />
-                                                    {type !== 'ms' && (
-                                                        <Line yAxisId="right" type="monotone" dataKey="users" name="Active Users" stroke="#e4e4e7" strokeWidth={2} dot={{ r: 3, fill: '#09090b', strokeWidth: 2, stroke: '#e4e4e7' }} activeDot={{ r: 5, strokeWidth: 0, fill: '#fff' }} />
-                                                    )}
-                                                </ComposedChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    ) : (
-                                        <div className="h-[300px] flex flex-col items-center justify-center text-zinc-500 gap-3">
-                                            <Box className="h-8 w-8 opacity-20" />
-                                            <p className="text-sm font-medium text-zinc-600 uppercase tracking-tighter">No activity data available</p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
+                                    <div className="w-full">
+                                        {renderConveyorChart()}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : null}
                     </>
                 )}
             </div>
@@ -1250,12 +1296,12 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                     <Table>
                                         <TableHeader className="sticky top-0 z-10 bg-zinc-950 border-b border-zinc-900">
                                             <TableRow className="border-none hover:bg-transparent">
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 pl-8">External HU</TableHead>
+                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 pl-8">Handling Unit</TableHead>
                                                 <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Delivery</TableHead>
                                                 <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Prio</TableHead>
                                                 <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Cutoff</TableHead>
                                                 <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Status</TableHead>
-                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-right pr-8">Lns / Itm</TableHead>
+                                                <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-right pr-8">Lines / Items</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
