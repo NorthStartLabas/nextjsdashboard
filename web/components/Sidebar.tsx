@@ -42,6 +42,20 @@ const menuItems = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const [version, setVersion] = React.useState("V1.0.0");
+
+    React.useEffect(() => {
+        const fetchVersion = async () => {
+            try {
+                const res = await fetch("/api/version");
+                if (res.ok) {
+                    const data = await res.json();
+                    setVersion(data.version || "V1.0.0");
+                }
+            } catch (e) { }
+        };
+        fetchVersion();
+    }, [pathname]);
 
     if (pathname === "/" || pathname === "/dev") return null;
 
@@ -82,7 +96,6 @@ export function Sidebar() {
                                                 : "text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent"
                                         )}
                                     >
-                                        {/* 2.4 — left-edge accent bar */}
                                         {isActive && (
                                             <span className="absolute left-0 inset-y-0 w-[3px] bg-blue-500 rounded-r-full" />
                                         )}
@@ -90,7 +103,6 @@ export function Sidebar() {
                                             "w-4 h-4 transition-transform group-hover:scale-110",
                                             isActive ? "text-blue-500" : "text-zinc-500"
                                         )} />
-                                        {/* 2.2 — bump from text-xs to text-[13px] */}
                                         <span className="text-[13px] font-semibold whitespace-nowrap">
                                             {item.name}
                                         </span>
@@ -100,6 +112,14 @@ export function Sidebar() {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            {/* Version Display */}
+            <div className="p-6 border-t border-zinc-900 mt-auto">
+                <div className="flex items-center gap-2 text-zinc-600">
+                    <span className="text-[10px] font-black tracking-widest leading-none">Version</span>
+                    <span className="text-[10px] font-mono leading-none">{version}</span>
+                </div>
             </div>
         </div>
     );

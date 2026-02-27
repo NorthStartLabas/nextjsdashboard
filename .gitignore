@@ -1,8 +1,30 @@
 # Dependencies
 node_modules/
 .venv/
-build/
-dist/
+
+# Next.js Build Output
+.next/
+out/
+
+# Environment Secrets (Crucial for security!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database/Data
+web/data/store.json
+script/output/
 
 # Next.js specific
 web/.next/
@@ -16,8 +38,5 @@ __pycache__/
 *$py.class
 .ipynb_checkpoints/
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
-.md
+# MD files
+*.md

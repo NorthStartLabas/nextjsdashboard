@@ -19,7 +19,8 @@ export function getStore() {
                 ms_B: { emerald: 100, blue: 60, orange: 40, red: 0 }
             },
             userMappings: {},
-            blacklist: []
+            blacklist: [],
+            version: "V1.0.0"
         };
         fs.mkdirSync(path.dirname(storePath), { recursive: true });
         fs.writeFileSync(storePath, JSON.stringify(initialData, null, 2));
@@ -41,6 +42,7 @@ export function getStore() {
     if (!parsed.userMappings) parsed.userMappings = {};
     if (!parsed.blacklist) parsed.blacklist = [];
     if (!parsed.uptimeStart) parsed.uptimeStart = new Date().toISOString();
+    if (!parsed.version) parsed.version = "V1.0.0";
     if (parsed.totalRunsCount === undefined || (parsed.runs.length > parsed.totalRunsCount)) {
         parsed.totalRunsCount = Math.max(parsed.totalRunsCount || 0, parsed.runs.length);
     }

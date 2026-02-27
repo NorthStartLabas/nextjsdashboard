@@ -41,6 +41,7 @@ export default function DevDashboard() {
     const [dateParam, setDateParam] = useState<Date>();
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [isExecuting, setIsExecuting] = useState(false);
+    const [version, setVersion] = useState("V1.0.0");
 
     // User management state
     const [availableUsers, setAvailableUsers] = useState<string[]>([]);
@@ -94,12 +95,23 @@ export default function DevDashboard() {
         } catch (e) { }
     };
 
+    const fetchVersion = async () => {
+        try {
+            const res = await fetch("/api/version");
+            if (res.ok) {
+                const data = await res.json();
+                setVersion(data.version || "V1.0.0");
+            }
+        } catch (e) { }
+    };
+
     useEffect(() => {
         if (authenticated) {
             fetchStats();
             fetchCron();
             fetchThresholds();
             fetchUsers();
+            fetchVersion();
             const interval = setInterval(() => {
                 fetchStats();
             }, 5000);
@@ -256,6 +268,25 @@ export default function DevDashboard() {
             }
         } catch (error) {
             toast.error("Network error saving users.");
+        }
+    };
+
+    const handleSaveVersion = async () => {
+        try {
+            const res = await fetch("/api/version", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ version })
+            });
+            if (res.ok) {
+                toast.success("System version updated!", {
+                    style: { background: "#18181b", borderColor: "#3f3f46", color: "#10b981" }
+                });
+            } else {
+                toast.error("Failed to update version.");
+            }
+        } catch (error) {
+            toast.error("Network error saving version.");
         }
     };
 
@@ -571,6 +602,34 @@ export default function DevDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                     <div className="lg:col-span-1 space-y-6">
+                        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
+                            <CardHeader className="border-b border-zinc-800/40 bg-zinc-900/10">
+                                <CardTitle className="text-base text-zinc-200">System Configuration</CardTitle>
+                                <CardDescription className="text-zinc-500">Manage global system parameters</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4 pt-6">
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">App Version</Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={version}
+                                            onChange={(e) => setVersion(e.target.value)}
+                                            placeholder="V1.0.0"
+                                            className="h-10 bg-zinc-900/50 border-zinc-800 text-zinc-200 focus-visible:ring-zinc-700"
+                                        />
+                                        <Button
+                                            onClick={handleSaveVersion}
+                                            size="icon"
+                                            className="h-10 w-10 shrink-0 bg-zinc-100 text-zinc-900 hover:bg-white"
+                                        >
+                                            <Save className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    <p className="text-[10px] text-zinc-500 font-medium">This version string is displayed globally in the sidebar.</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
                             <CardHeader className="border-b border-zinc-800/40 bg-zinc-900/10">
                                 <CardTitle className="text-base text-zinc-200">Manual Execution</CardTitle>
@@ -977,6 +1036,14 @@ export default function DevDashboard() {
                         </Card>
                     </div>
 
+                </div>
+            </div>
+
+            {/* Version Display in Dev Footer */}
+            <div className="max-w-7xl mx-auto mt-8 px-4 flex justify-end">
+                <div className="flex items-center gap-2 text-zinc-700">
+                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">Version</span>
+                    <span className="text-[10px] font-mono leading-none">{version}</span>
                 </div>
             </div>
         </div>

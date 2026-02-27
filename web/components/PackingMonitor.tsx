@@ -21,7 +21,7 @@ export default function PackingMonitor({ title, type }: { title: any, type: any 
     const [userMappings, setUserMappings] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
 
-    const [activeFlow, setActiveFlow] = useState('A-flow');
+    const [activeFlow, setActiveFlow] = useState('B-flow');
     const [selectedFloors, setSelectedFloors] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [lastRefreshed, setLastRefreshed] = useState("");
@@ -365,25 +365,32 @@ export default function PackingMonitor({ title, type }: { title: any, type: any 
                     </div>
 
                     <div className="flex p-1 bg-zinc-950/50 rounded-xl border border-zinc-800 h-11">
-                        {['A-flow', 'B-flow'].map((flow) => (
-                            <button
-                                key={flow}
-                                onClick={() => setActiveFlow(flow)}
-                                className={cn(
-                                    "relative px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ease-out outline-none",
-                                    activeFlow === flow ? "text-white" : "text-zinc-400 hover:text-zinc-200"
-                                )}
-                            >
-                                {activeFlow === flow && (
-                                    <motion.div
-                                        layoutId="activeFlow"
-                                        className="absolute inset-0 bg-blue-600 rounded-lg shadow-lg"
-                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                    />
-                                )}
-                                <span className="relative z-10">{flow.replace('-', ' ')}</span>
-                            </button>
-                        ))}
+                        {['A-flow', 'B-flow'].map((flow) => {
+                            const isDisabled = flow === 'A-flow';
+                            return (
+                                <button
+                                    key={flow}
+                                    onClick={() => !isDisabled && setActiveFlow(flow)}
+                                    disabled={isDisabled}
+                                    className={cn(
+                                        "relative px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ease-out outline-none",
+                                        activeFlow === flow ? "text-white" : (isDisabled ? "text-zinc-700 cursor-not-allowed" : "text-zinc-400 hover:text-zinc-200")
+                                    )}
+                                >
+                                    {activeFlow === flow && (
+                                        <motion.div
+                                            layoutId="activeFlow"
+                                            className="absolute inset-0 bg-blue-600 rounded-lg shadow-lg"
+                                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                        />
+                                    )}
+                                    <span className="relative z-10">
+                                        {flow.replace('-', ' ')}
+                                        {isDisabled && <span className="ml-2 text-[10px] opacity-50">(Inactive)</span>}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </header>
 

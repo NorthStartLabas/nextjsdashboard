@@ -399,6 +399,13 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
         }).sort((a, b) => a.label.localeCompare(b.label));
     }, [data?.cutoffs]);
 
+    const nextCutoff = useMemo(() => {
+        if (formattedCutoffs.length === 0) return null;
+        const nowStr = format(new Date(), "HH:mm");
+        const upcoming = formattedCutoffs.find(c => c.label >= nowStr);
+        return upcoming || formattedCutoffs[0];
+    }, [formattedCutoffs]);
+
     const priorityData = useMemo(() => {
         if (!data?.priorities) return [];
         return Object.entries(data.priorities).map(([prio, count]) => ({
@@ -491,7 +498,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                 <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border transition-all group">
                     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
                         <CardTitle className="text-sm font-medium">Closed Overall Today</CardTitle>
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent className="pt-6 space-y-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -722,65 +729,71 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
     );
 
     const renderCutoffCard = () => (
-        <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border flex flex-col overflow-hidden h-full">
+        <Card
+            className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl border flex flex-col overflow-hidden h-full cursor-pointer hover:bg-zinc-900/40 transition-all group"
+            onClick={() => setIsCutoffModalOpen(true)}
+        >
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200 py-4 border-b border-zinc-900/50 bg-zinc-900/5 rounded-t-2xl">
-                <div className="flex items-center gap-2">
-                    <CardTitle className="text-sm font-medium">Cutoff Times</CardTitle>
-                    <button
-                        onClick={() => setIsCutoffModalOpen(true)}
-                        className="p-1 hover:bg-white/5 rounded-md transition-colors group/expand"
-                        title="Expand view"
-                    >
-                        <Maximize2 className="w-3.5 h-3.5 text-zinc-500 group-hover/expand:text-amber-500 transition-colors" />
-                    </button>
-                </div>
-                <Timer className="h-4 w-4 text-amber-500" />
+                <CardTitle className="text-sm font-medium">Cutoff Times</CardTitle>
+                <Timer className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
             </CardHeader>
-            <CardContent className={cn("pt-6 overflow-y-auto custom-scrollbar px-6", isSpecialLayout ? "h-[300px]" : (type === 'cvns' ? "h-[260px]" : "h-[540px]"))}>
-                <div className="space-y-4 pb-6">
-                    {formattedCutoffs.map((cutoff: any, i) => (
-                        <div key={i} className="p-4 bg-zinc-950/40 rounded-xl border border-zinc-900/50 hover:bg-zinc-900/30 transition-all group space-y-3">
-                            <div className="flex items-center justify-between border-b border-zinc-900/50 pb-2">
+            <CardContent className={cn("pt-6 px-6 flex-1 flex flex-col", isSpecialLayout ? "h-[300px]" : (type === 'cvns' ? "h-[260px]" : "h-[540px]"))}>
+                <div className="flex-1 flex flex-col justify-center">
+                    {nextCutoff ? (
+                        <div className="p-6 bg-zinc-950/40 rounded-2xl border border-zinc-900/50 hover:bg-zinc-900/30 transition-all group/item space-y-6">
+                            <div className="flex items-center justify-between border-b border-zinc-900/50 pb-4">
                                 <div className="flex items-center gap-3">
-                                    <Clock className="w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-500" />
-                                    <span className="text-sm font-black text-zinc-200 tracking-wider">
-                                        {cutoff.label}
+                                    <Clock className="w-4 h-4 text-amber-500" />
+                                    <span className="text-xl font-black text-zinc-100 tracking-wider">
+                                        {nextCutoff.label}
                                     </span>
                                 </div>
+                                <span className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                                    Next Cutoff
+                                </span>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">Open Lines</p>
-                                    <p className="text-base font-black text-white">{(cutoff.total_lines || 0).toLocaleString()}</p>
+                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">Open Lines</p>
+                                    <p className="text-2xl font-black text-white">{(nextCutoff.total_lines || 0).toLocaleString()}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">Picked Lines</p>
-                                    <p className="text-base font-black text-white">{(cutoff.picked_lines || 0).toLocaleString()}</p>
+                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">Picked Lines</p>
+                                    <p className="text-2xl font-black text-white">{(nextCutoff.picked_lines || 0).toLocaleString()}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-white uppercase tracking-tighter">Handling Units</p>
-                                    <div className="flex items-baseline gap-1.5">
-                                        <p className="text-base font-black text-white">{(cutoff.total_hus || 0).toLocaleString()}</p>
-                                        <p className="text-[10px] font-bold text-emerald-500">({(cutoff.picked_hus || 0)})</p>
+                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">Handling Units</p>
+                                    <div className="flex items-baseline gap-2">
+                                        <p className="text-2xl font-black text-white">{(nextCutoff.total_hus || 0).toLocaleString()}</p>
+                                        <p className="text-[8px] font-bold text-emerald-500">({(nextCutoff.picked_hus || 0)} picked)</p>
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-white uppercase tracking-tighter">Deliveries</p>
-                                    <p className="text-base font-black text-white">{(cutoff.total_deliveries || 0).toLocaleString()}</p>
+                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">Deliveries</p>
+                                    <p className="text-2xl font-black text-white">{(nextCutoff.total_deliveries || 0).toLocaleString()}</p>
                                 </div>
-                                <div className="col-span-2 pt-2 border-t border-zinc-900/50">
-                                    <div className="flex items-baseline gap-2">
-                                        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">DP10 Lines</p>
-                                        <p className="text-lg font-black text-[#ef4444]">{(cutoff.dp10_lines || 0).toLocaleString()}</p>
+                                <div className="col-span-2 pt-4 border-t border-zinc-900/50">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">DP10 Priority Lines</p>
+                                        <p className="text-2xl font-black text-[#ef4444]">{(nextCutoff.dp10_lines || 0).toLocaleString()}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-3 border-2 border-dashed border-zinc-900/50 rounded-2xl">
+                            <Timer className="w-8 h-8 opacity-20" />
+                            <p className="text-[10px] font-black uppercase tracking-widest">No upcoming cutoffs</p>
+                        </div>
+                    )}
+                </div>
+                <div className="flex items-center justify-between mt-4 px-1 pb-2">
+                    <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-tight">View detailed cutoff analytics</p>
+                    <Maximize2 className="h-3 w-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
             </CardContent>
-        </Card>
+        </Card >
     );
 
     const renderStorageDistribution = () => (
@@ -1162,9 +1175,9 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                             <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 pl-8">Cutoff</TableHead>
                                             <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Open Lines</TableHead>
                                             <TableHead className="text-[11px] font-black uppercase text-emerald-500 h-14 text-center">Picked</TableHead>
-                                            <TableHead className="text-[11px] font-black uppercase text-[#f59e0b] h-14 text-center">HUs</TableHead>
-                                            <TableHead className="text-[11px] font-black uppercase text-[#f59e0b] h-14 text-center opacity-60">HU Picked</TableHead>
-                                            <TableHead className="text-[11px] font-black uppercase text-blue-500 h-14 text-center">Deliveries</TableHead>
+                                            <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">HUs</TableHead>
+                                            <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">HU Picked</TableHead>
+                                            <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Deliveries</TableHead>
                                             <TableHead className="text-[11px] font-black uppercase text-[#ef4444] h-14 text-right pr-8">DP10 Lines</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -1174,15 +1187,15 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                                 <TableCell className="pl-8 py-5">
                                                     <div className="flex items-center gap-3">
                                                         <Clock className="w-4 h-4 text-zinc-600" />
-                                                        <span className="text-lg font-black text-zinc-200">{cutoff.label}</span>
+                                                        <span className="text-sm font-black text-zinc-200">{cutoff.label}</span>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="text-center font-mono font-bold text-lg text-zinc-100">{(cutoff.total_lines || 0).toLocaleString()}</TableCell>
-                                                <TableCell className="text-center font-mono font-bold text-lg text-emerald-500">{(cutoff.picked_lines || 0).toLocaleString()}</TableCell>
-                                                <TableCell className="text-center font-mono font-bold text-lg text-[#f59e0b]">{(cutoff.total_hus || 0).toLocaleString()}</TableCell>
-                                                <TableCell className="text-center font-mono font-bold text-lg text-[#f59e0b] opacity-60">{(cutoff.picked_hus || 0).toLocaleString()}</TableCell>
-                                                <TableCell className="text-center font-mono font-bold text-lg text-blue-500">{(cutoff.total_deliveries || 0).toLocaleString()}</TableCell>
-                                                <TableCell className="text-right pr-8 font-mono font-black text-xl text-[#ef4444]">{(cutoff.dp10_lines || 0).toLocaleString()}</TableCell>
+                                                <TableCell className="text-center font-mono font-bold text-sm text-zinc-100">{(cutoff.total_lines || 0).toLocaleString()}</TableCell>
+                                                <TableCell className="text-center font-mono font-bold text-sm text-emerald-500">{(cutoff.picked_lines || 0).toLocaleString()}</TableCell>
+                                                <TableCell className="text-center font-mono font-bold text-sm text-zinc-100">{(cutoff.total_hus || 0).toLocaleString()}</TableCell>
+                                                <TableCell className="text-center font-mono font-bold text-sm text-zinc-100">{(cutoff.picked_hus || 0).toLocaleString()}</TableCell>
+                                                <TableCell className="text-center font-mono font-bold text-sm text-zinc-100">{(cutoff.total_deliveries || 0).toLocaleString()}</TableCell>
+                                                <TableCell className="text-right pr-8 font-mono font-black text-sm text-[#ef4444]">{(cutoff.dp10_lines || 0).toLocaleString()}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -1273,8 +1286,8 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                 {/* Vertical Filter Sidebar */}
                                 <aside className="w-72 border-r border-zinc-900 bg-zinc-900/20 flex flex-col p-6 overflow-y-auto custom-scrollbar gap-8">
                                     <div className="flex items-center gap-3 text-zinc-400 pb-2 border-b border-zinc-800/50">
-                                        <Filter className="w-4 h-4" />
-                                        <span className="text-xs font-black uppercase tracking-[0.2em]">Active Filters</span>
+                                        <Filter className="w-3 h-3" />
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Active Filters</span>
                                     </div>
 
                                     {/* Status Section */}
@@ -1314,7 +1327,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                                             : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:text-white"
                                                     )}
                                                 >
-                                                    P{p}
+                                                    DP{p}
                                                 </button>
                                             ))}
                                         </div>
@@ -1552,8 +1565,8 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                 {/* Vertical Filter Sidebar */}
                                 <aside className="w-72 border-r border-zinc-900 bg-zinc-900/20 flex flex-col p-6 overflow-y-auto custom-scrollbar gap-8">
                                     <div className="flex items-center gap-3 text-zinc-400 pb-2 border-b border-zinc-800/50">
-                                        <Filter className="w-4 h-4" />
-                                        <span className="text-xs font-black uppercase tracking-[0.2em]">Active Filters</span>
+                                        <Filter className="w-3 h-3" />
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Active Filters</span>
                                     </div>
 
                                     {/* Status Section */}

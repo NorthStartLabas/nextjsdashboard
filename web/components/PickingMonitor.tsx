@@ -664,8 +664,8 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                                 <TableHead className="py-4 text-center text-xs font-semibold tracking-wider text-zinc-400 uppercase">
                                     Intensity
                                 </TableHead>
-                                <TableHead onClick={() => handleSort('PRODUCTIVITY')} className="py-4 text-left text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors w-32">
-                                    <div className="ml-4">
+                                <TableHead onClick={() => handleSort('PRODUCTIVITY')} className="py-4 text-right text-xs font-semibold tracking-wider text-zinc-400 uppercase cursor-pointer hover:text-blue-500 transition-colors w-32">
+                                    <div className="pr-4">
                                         Performance {sortConfig?.key === 'PRODUCTIVITY' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                                     </div>
                                 </TableHead>
@@ -782,7 +782,7 @@ export default function PickingMonitor({ title, type }: { title: any, type: any 
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="py-4">
-                                                    <div className="flex justify-start ml-4">
+                                                    <div className="flex justify-end pr-4">
                                                         <span className={cn(
                                                             "inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold tabular-nums shadow-sm",
                                                             getPerformanceBg(row.PRODUCTIVITY, row.FLOOR)
