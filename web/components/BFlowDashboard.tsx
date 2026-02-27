@@ -137,7 +137,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
             `"${line.VLPLA || ''}"`,
             `"${line.VLTYP || ''}"`,
             `"${line.KOBER || ''}"`,
-            `${line.NISTA || 0}`,
+            `${line.VSOLA || 0}`,
             line.QDATU ? '"Picked"' : '"Open"',
             `${line.VOLUM || 0}`,
             `"${line.FLOOR || ''}"`
@@ -1452,7 +1452,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                                                     </span>
                                                                 </TableCell>
                                                                 <TableCell className="text-center font-mono font-bold text-blue-400">
-                                                                    {line.NISTA}
+                                                                    {line.VSOLA}
                                                                 </TableCell>
                                                                 {type !== 'ms' && (
                                                                     <TableCell className="text-center">

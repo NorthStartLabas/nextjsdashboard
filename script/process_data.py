@@ -114,7 +114,7 @@ def main():
                         
                         ltap_c_rows = []
                         hu_c_rows = []
-                        ltap_cols = ['LGNUM', 'VBELN', 'VLPLA', 'VLTYP', 'NLPLA', 'QDATU', 'KOBER', 'NISTA', 'BRGEW', 'VOLUM']
+                        ltap_cols = ['LGNUM', 'VBELN', 'VLPLA', 'VLTYP', 'NLPLA', 'QDATU', 'KOBER', 'NISTA', 'BRGEW', 'VOLUM', 'VSOLA']
                         
                         for chunk in c_chunks:
                             c_str = ", ".join([f"'{v}'" for v in chunk])
@@ -129,7 +129,7 @@ def main():
                         df_hu_closed_all = pd.DataFrame(hu_c_rows, columns=['VBELN', 'EXIDV'])
                         
                         # Convert numeric
-                        for col in ['NISTA', 'BRGEW', 'VOLUM']:
+                        for col in ['NISTA', 'BRGEW', 'VOLUM', 'VSOLA']:
                             df_ltap_closed_all[col] = pd.to_numeric(df_ltap_closed_all[col], errors='coerce').fillna(0)
                         
                         # Strip zeros
@@ -143,7 +143,7 @@ def main():
                     vbeln_chunks = [unique_vbeln_list[i:i + 1000] for i in range(0, len(unique_vbeln_list), 1000)]
                     
                     ltap_dashboard_rows = []
-                    ltap_cols = ['LGNUM', 'VBELN', 'VLPLA', 'VLTYP', 'NLPLA', 'QDATU', 'KOBER', 'NISTA', 'BRGEW', 'VOLUM', 'TANUM']
+                    ltap_cols = ['LGNUM', 'VBELN', 'VLPLA', 'VLTYP', 'NLPLA', 'QDATU', 'KOBER', 'NISTA', 'BRGEW', 'VOLUM', 'TANUM', 'VSOLA']
                     
                     for chunk in vbeln_chunks:
                         chunk_str = ", ".join([f"'{v}'" for v in chunk])
@@ -200,7 +200,7 @@ def main():
                             df_prio_grp['EXIDV'] = df_prio_grp['EXIDV'].astype(str).str.strip()
                     
                     # Convert numeric columns
-                    for col in ['NISTA', 'BRGEW', 'VOLUM']:
+                    for col in ['NISTA', 'BRGEW', 'VOLUM', 'VSOLA']:
                         df_ltap_dash[col] = pd.to_numeric(df_ltap_dash[col], errors='coerce').fillna(0)
 
                     output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
@@ -237,17 +237,18 @@ def main():
                         def get_metrics_local(df):
                             picked = df[df['QDATU'].notnull()]
                             not_picked = df[df['QDATU'].isnull()]
-                            def agg(d):
+                            def agg(d, qty_col):
                                 return {
                                     "lines": int(len(d)),
-                                    "items": int(d['NISTA'].sum()),
+                                    "items": int(d[qty_col].sum()),
+                                    "requested_items": int(d['VSOLA'].sum()),
                                     "kg": round(float(d['BRGEW'].sum()), 2),
                                     "vol": round(float(d['VOLUM'].sum()), 2)
                                 }
                             return {
-                                "total": agg(df),
-                                "picked": agg(picked),
-                                "not_picked": agg(not_picked)
+                                "total": agg(df, 'VSOLA'),
+                                "picked": agg(picked, 'NISTA'),
+                                "not_picked": agg(not_picked, 'VSOLA')
                             }
 
                         # Ensure VBELN is string and stripped of leading zeros for consistent mapping
@@ -377,6 +378,7 @@ def main():
                                 "hus": int(len(df_hu_c_dept)),
                                 "lines": int(len(df_ltap_c_dept)),
                                 "items": int(df_ltap_c_dept['NISTA'].sum()),
+                                "requested_items": int(df_ltap_c_dept['VSOLA'].sum()),
                                 "vol": round(float(df_ltap_c_dept['VOLUM'].sum() / 1000000), 3), # in M3
                                 "kg": round(float(df_ltap_c_dept['BRGEW'].sum()), 2)
                             }
@@ -413,7 +415,7 @@ def main():
 
                         # --- DETAILED LINES EXPORT ---
                         lines_filename = filename.replace('dashboard_data_', 'dashboard_lines_')
-                        export_cols = ['VBELN', 'LPRIO', 'WAUHR', 'VLPLA', 'VLTYP', 'KOBER', 'NISTA', 'BRGEW', 'VOLUM', 'QDATU']
+                        export_cols = ['VBELN', 'LPRIO', 'WAUHR', 'VLPLA', 'VLTYP', 'KOBER', 'NISTA', 'BRGEW', 'VOLUM', 'QDATU', 'VSOLA']
                         if 'FLOOR' in df_ltap_merged.columns:
                             export_cols.append('FLOOR')
                         
@@ -435,6 +437,7 @@ def main():
                         # Calculate per-delivery stats to assign proportionally to HUs
                         deliv_stats = df_ltap_dept.groupby('VBELN').agg({
                             'NISTA': 'sum',
+                            'VSOLA': 'sum',
                             'VBELN': 'count' # Line count
                         }).rename(columns={'VBELN': 'LINES_COUNT', 'NISTA': 'ITEMS_COUNT'}).reset_index()
                         
@@ -472,7 +475,7 @@ def main():
 
 
     # --- PICKING EXTRACTION ---
-    columns = ['MATNR', 'CHARG', 'NISTA', 'QDATU', 'QZEIT', 'QNAME', 'BRGEW', 'GEWEI', 'VLTYP', 'VLPLA', 'NLPLA', 'VBELN', 'LGNUM']
+    columns = ['MATNR', 'CHARG', 'NISTA', 'QDATU', 'QZEIT', 'QNAME', 'BRGEW', 'GEWEI', 'VLTYP', 'VLPLA', 'NLPLA', 'VBELN', 'LGNUM', 'VSOLA']
     cols_str = ", ".join(columns)
 
     print(f"Fetching base picking data from SDS_CP_LTAP for {target_date}...")
@@ -663,6 +666,7 @@ def main():
 
     df_merged['FLOOR'] = df_merged.apply(map_floor, axis=1)
     df_merged['NISTA'] = pd.to_numeric(df_merged['NISTA'], errors='coerce').fillna(0)
+    df_merged['VSOLA'] = pd.to_numeric(df_merged['VSOLA'], errors='coerce').fillna(0)
 
     # Filter out unknown_floor from picking
     df_merged = df_merged[df_merged['FLOOR'] != 'unknown_floor'].copy()
@@ -698,6 +702,7 @@ def main():
         # Ensure numeric
         df['BRGEW'] = pd.to_numeric(df['BRGEW'], errors='coerce').fillna(0)
         df['NISTA'] = pd.to_numeric(df['NISTA'], errors='coerce').fillna(0)
+        df['VSOLA'] = pd.to_numeric(df['VSOLA'], errors='coerce').fillna(0)
 
         # 1. First, calculate context-wide benchmarks (Flow & Floor specific)
         context_benchmarks = {}
