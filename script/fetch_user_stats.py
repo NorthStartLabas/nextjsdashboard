@@ -71,7 +71,7 @@ def main():
 
     try:
         if activity == 'picking':
-            columns = ['UMREZ', 'QDATU', 'QZEIT', 'QNAME', 'VLPLA', 'LGNUM']
+            columns = ['NISTA', 'QDATU', 'QZEIT', 'QNAME', 'VLPLA', 'LGNUM']
             cols_str = ", ".join(columns)
             
             # Picking Query
@@ -106,7 +106,7 @@ def main():
                 if not df_filtered.empty:
                     df_filtered['HOUR'] = df_filtered['QZEIT'].apply(extract_hour)
                     df_filtered['TOTAL_COUNT'] = 1 # Each row is 1 line
-                    df_filtered['ITEMS_SUM'] = pd.to_numeric(df_filtered['UMREZ'], errors='coerce').fillna(0)
+                    df_filtered['ITEMS_SUM'] = pd.to_numeric(df_filtered['NISTA'], errors='coerce').fillna(0)
                     df_filtered['QDATU'] = pd.to_datetime(df_filtered['QDATU'])
                     df_final = df_filtered
 
