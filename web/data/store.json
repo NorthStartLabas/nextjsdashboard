@@ -540,6 +540,12 @@
       "blue": 70,
       "orange": 60,
       "red": 50
+    },
+    "cvns_packing_B_ground_floor": {
+      "emerald": 100,
+      "blue": 60,
+      "orange": 40,
+      "red": 0
     }
   },
   "userMappings": {

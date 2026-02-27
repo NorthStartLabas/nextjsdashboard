@@ -6,7 +6,10 @@ import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
     ClipboardList,
+    ClipboardCheck,
     Package,
+    PackageCheck,
+    Gauge,
     Users,
     Monitor
 } from "lucide-react";
@@ -24,9 +27,9 @@ const menuItems = [
     {
         title: "MS Outbound",
         items: [
-            { name: "Dashboard", href: "/outbound/ms/dashboard", icon: LayoutDashboard },
-            { name: "Picking", href: "/outbound/ms/picking", icon: ClipboardList },
-            { name: "Packing", href: "/outbound/ms/packing", icon: Package },
+            { name: "Dashboard", href: "/outbound/ms/dashboard", icon: Gauge },
+            { name: "Picking", href: "/outbound/ms/picking", icon: ClipboardCheck },
+            { name: "Packing", href: "/outbound/ms/packing", icon: PackageCheck },
         ],
     },
     {
@@ -40,7 +43,7 @@ const menuItems = [
 export function Sidebar() {
     const pathname = usePathname();
 
-    if (pathname === "/") return null;
+    if (pathname === "/" || pathname === "/dev") return null;
 
     return (
         <div className="w-60 flex flex-col h-screen border-r border-zinc-900 bg-[#09090b] shrink-0">
@@ -50,7 +53,7 @@ export function Sidebar() {
                     <div className="p-1.5 bg-blue-600 rounded-lg shrink-0">
                         <Monitor className="w-3.5 h-3.5 text-white" />
                     </div>
-                    <span className="font-bold tracking-tight text-white/90 whitespace-nowrap text-[10px]">
+                    <span className="font-semibold tracking-tight text-white/90 text-sm leading-tight">
                         Medtronic General Dashboard
                     </span>
                 </div>
@@ -73,22 +76,24 @@ export function Sidebar() {
                                         key={item.href}
                                         href={item.href}
                                         className={cn(
-                                            "flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all group",
+                                            "relative flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all group overflow-hidden",
                                             isActive
                                                 ? "bg-blue-600/10 text-blue-500 border border-blue-600/20"
                                                 : "text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent"
                                         )}
                                     >
+                                        {/* 2.4 — left-edge accent bar */}
+                                        {isActive && (
+                                            <span className="absolute left-0 inset-y-0 w-[3px] bg-blue-500 rounded-r-full" />
+                                        )}
                                         <Icon className={cn(
                                             "w-4 h-4 transition-transform group-hover:scale-110",
                                             isActive ? "text-blue-500" : "text-zinc-500"
                                         )} />
-                                        <span className="text-xs font-semibold whitespace-nowrap">
+                                        {/* 2.2 — bump from text-xs to text-[13px] */}
+                                        <span className="text-[13px] font-semibold whitespace-nowrap">
                                             {item.name}
                                         </span>
-                                        {isActive && (
-                                            <div className="ml-auto w-1 h-1 rounded-full bg-blue-600" />
-                                        )}
                                     </Link>
                                 );
                             })}

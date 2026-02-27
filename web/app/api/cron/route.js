@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server';
 import { getStore, saveStore } from '@/lib/store';
 import { scheduleJob, unscheduleJob } from '@/lib/cronManager';
-import crypto from 'crypto'; // Native node crypto
+import crypto from 'crypto';
+import parser from 'cron-parser';
 
 export async function GET() {
     const store = getStore();
-    return NextResponse.json(store.cronJobs);
+    const jobsWithNextRun = store.cronJobs.map(job => {
+        let nextRun = null;
+        if (job.isActive) {
+            try {
+                const interval = parser.parseExpression(job.expression);
+                nextRun = interval.next().toISOString();
+            } catch (e) { }
+        }
+        return { ...job, nextRun };
+    });
+    return NextResponse.json(jobsWithNextRun);
 }
 
 export async function POST(request) {

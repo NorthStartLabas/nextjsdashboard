@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Play, Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Activity, Plus, Trash2, Power, Settings2, Save, Search, Terminal, RotateCcw } from "lucide-react";
+import { Play, Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Activity, Plus, Trash2, Power, Settings2, Save, Search, Terminal, RotateCcw, Eye, EyeOff, ShieldAlert, Shield, Loader2, ChevronDown, X, History, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -17,22 +17,41 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
+const SESSION_KEY = "dev_session_expires";
+const SESSION_DURATION_MS = 60 * 60 * 1000; // 60 minutes
+
 export default function DevDashboard() {
     const [authenticated, setAuthenticated] = useState(false);
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+    // 1.7 — restore session from localStorage on mount
+    useEffect(() => {
+        const expires = localStorage.getItem(SESSION_KEY);
+        if (expires && Date.now() < parseInt(expires, 10)) {
+            setAuthenticated(true);
+        }
+    }, []);
 
     const [stats, setStats] = useState<any>(null);
     const [cronJobs, setCronJobs] = useState<any[]>([]);
     const [thresholds, setThresholds] = useState<any>({});
 
     const [dateParam, setDateParam] = useState<Date>();
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [isExecuting, setIsExecuting] = useState(false);
 
     // User management state
     const [availableUsers, setAvailableUsers] = useState<string[]>([]);
     const [userMappings, setUserMappings] = useState<Record<string, string>>({});
     const [blacklist, setBlacklist] = useState<string[]>([]);
+    const [initialUserMappings, setInitialUserMappings] = useState<Record<string, string>>({});
+    const [initialBlacklist, setInitialBlacklist] = useState<string[]>([]);
     const [userSearch, setUserSearch] = useState("");
+
+    const hasUserChanges = JSON.stringify(userMappings) !== JSON.stringify(initialUserMappings) ||
+        JSON.stringify([...blacklist].sort()) !== JSON.stringify([...initialBlacklist].sort());
 
     // New Cron Form State
     const [newCronName, setNewCronName] = useState("");
@@ -69,6 +88,8 @@ export default function DevDashboard() {
                 setAvailableUsers(data.availableUsers || []);
                 setUserMappings(data.userMappings || {});
                 setBlacklist(data.blacklist || []);
+                setInitialUserMappings(data.userMappings || {});
+                setInitialBlacklist(data.blacklist || []);
             }
         } catch (e) { }
     };
@@ -86,15 +107,21 @@ export default function DevDashboard() {
         }
     }, [authenticated]);
 
-    const handleAuth = (e: React.FormEvent) => {
+    const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsAuthenticating(true);
+        // Simulate a brief async delay for UX feedback
+        await new Promise((r) => setTimeout(r, 600));
         if (password === "MEDTRONIC2026") {
+            const expires = Date.now() + SESSION_DURATION_MS;
+            localStorage.setItem(SESSION_KEY, expires.toString());
             setAuthenticated(true);
         } else {
             toast.error("Incorrect password", {
                 style: { background: "#18181b", borderColor: "#3f3f46", color: "#f4f4f5" }
             });
         }
+        setIsAuthenticating(false);
     };
 
     const handleRunScript = async () => {
@@ -222,6 +249,8 @@ export default function DevDashboard() {
                 toast.success("User preferences saved!", {
                     style: { background: "#18181b", borderColor: "#3f3f46", color: "#10b981" }
                 });
+                setInitialUserMappings(userMappings);
+                setInitialBlacklist(blacklist);
             } else {
                 toast.error("Failed to save users.");
             }
@@ -245,36 +274,110 @@ export default function DevDashboard() {
         }));
     };
 
-    const updateSingleThreshold = (keyName: string, level: string, value: number) => {
-        setThresholds((prev: any) => ({
-            ...prev,
-            [keyName]: {
-                ...prev[keyName],
-                [level]: value
+    const updateSingleThreshold = (cfgId: string, level: string, value: number) => {
+        setThresholds((prev: any) => {
+            const current = prev[cfgId] || { emerald: 100, blue: 60, orange: 40, red: 0 };
+            const next = { ...current, [level]: value };
+
+            // 7.5: Enforce logical ordering: emerald > blue > orange > red
+            // When one value is changed, we may need to nudge others to maintain the hierarchy
+            if (level === 'emerald') {
+                if (next.emerald <= next.blue) next.blue = Math.max(0, next.emerald - 1);
+                if (next.blue <= next.orange) next.orange = Math.max(0, next.blue - 1);
+                if (next.orange <= next.red) next.red = Math.max(0, next.orange - 1);
+            } else if (level === 'blue') {
+                if (next.blue >= next.emerald) next.emerald = next.blue + 1;
+                if (next.blue <= next.orange) next.orange = Math.max(0, next.blue - 1);
+                if (next.orange <= next.red) next.red = Math.max(0, next.orange - 1);
+            } else if (level === 'orange') {
+                if (next.orange >= next.blue) next.blue = next.orange + 1;
+                if (next.blue >= next.emerald) next.emerald = next.blue + 1;
+                if (next.orange <= next.red) next.red = Math.max(0, next.orange - 1);
+            } else if (level === 'red') {
+                if (next.red >= next.orange) next.orange = next.red + 1;
+                if (next.orange >= next.blue) next.blue = next.orange + 1;
+                if (next.blue >= next.emerald) next.emerald = next.blue + 1;
             }
-        }));
+
+            return {
+                ...prev,
+                [cfgId]: next
+            };
+        });
     };
 
     if (!authenticated) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#09090b] p-4 text-zinc-100 font-sans selection:bg-white/10 selection:text-white">
-                <Card className="w-full max-w-md bg-zinc-900/40 border-zinc-800/60 shadow-none rounded-2xl overflow-hidden">
-                    <CardHeader className="space-y-1 border-b border-zinc-800/40 bg-zinc-900/20 pb-6">
-                        <CardTitle className="text-2xl font-semibold tracking-tight text-zinc-100">System Authentication</CardTitle>
-                        <CardDescription className="text-zinc-400">Enter administrator password to access developer panel</CardDescription>
+                {/* Subtle radial background glow for atmosphere */}
+                <div className="absolute inset-0 pointer-events-none" aria-hidden>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-red-950/20 blur-[120px]" />
+                </div>
+
+                <Card className="relative w-full max-w-md bg-zinc-900/60 border border-red-900/30 shadow-[0_0_40px_rgba(220,38,38,0.06)] rounded-2xl overflow-hidden backdrop-blur-sm py-0 gap-0">
+
+                    {/* Restricted area banner — 1.4 */}
+                    <div className="flex items-center gap-2 px-5 py-2.5 bg-red-950/40 border-b border-red-900/30">
+                        <ShieldAlert className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                        <span className="text-[11px] font-bold uppercase tracking-widest text-red-400">Restricted Access</span>
+                    </div>
+
+                    <CardHeader className="space-y-2 border-b border-zinc-800/40 bg-zinc-900/10 pt-6 pb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-xl bg-zinc-800/60 border border-zinc-700/50">
+                                <Shield className="w-5 h-5 text-zinc-300" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-xl font-semibold tracking-tight text-zinc-100">Developer Panel</CardTitle>
+                                <CardDescription className="text-zinc-500 text-xs mt-0.5">Administrator credentials required</CardDescription>
+                            </div>
+                        </div>
                     </CardHeader>
-                    <CardContent className="pt-6">
+
+                    <CardContent className="pt-6 pb-6">
                         <form onSubmit={handleAuth} className="space-y-4">
-                            <Input
-                                type="password"
-                                placeholder="Root Password"
-                                value={password ?? ""}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-zinc-700 h-11 text-zinc-200"
-                            />
-                            <Button type="submit" className="w-full bg-zinc-100 text-zinc-900 hover:bg-white font-medium h-11">
-                                Authenticate
+                            {/* Password field with show/hide toggle — 1.2 */}
+                            <div className="relative">
+                                <Input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Root Password"
+                                    value={password ?? ""}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    autoComplete="current-password"
+                                    className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-zinc-700 h-11 text-zinc-200 pr-10"
+                                    disabled={isAuthenticating}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((v) => !v)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+
+                            {/* 1.5 — intentional button label with icon; 1.3 — loading state */}
+                            <Button
+                                type="submit"
+                                disabled={isAuthenticating || !password}
+                                className="w-full bg-zinc-100 text-zinc-900 hover:bg-white font-semibold h-11 flex items-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {isAuthenticating ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Verifying...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Shield className="w-4 h-4" />
+                                        Access Developer Panel
+                                    </>
+                                )}
                             </Button>
+
+
                         </form>
                     </CardContent>
                 </Card>
@@ -368,50 +471,102 @@ export default function DevDashboard() {
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl">
+
+                    {/* Server Uptime — priority card (3.1: emerald left-accent bar) */}
+                    <Card className="relative overflow-hidden bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl">
+                        <span className="absolute left-0 top-0 h-full w-[3px] bg-emerald-500/60 rounded-r-full" />
                         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200">
                             <CardTitle className="text-sm font-medium">Server Uptime</CardTitle>
                             <Activity className="h-4 w-4 text-emerald-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-semibold">{stats?.uptime || '--'}</div>
-                            <p className="text-xs text-zinc-500 font-medium mt-1">Since last restart</p>
+                            {/* 3.2 — skeleton while loading */}
+                            {stats === null ? (
+                                <div className="space-y-2 mt-0.5">
+                                    <div className="h-7 w-24 bg-zinc-800/80 rounded-lg animate-pulse" />
+                                    <div className="h-3 w-28 bg-zinc-800/50 rounded animate-pulse" />
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="text-2xl font-semibold">{stats.uptime}</div>
+                                    {/* 3.3 — consistent sub-label */}
+                                    <p className="text-xs text-zinc-500 font-medium mt-1">Since last restart</p>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
 
+                    {/* Total Runs */}
                     <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl">
                         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200">
                             <CardTitle className="text-sm font-medium">Total Runs</CardTitle>
                             <Play className="h-4 w-4 text-blue-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-semibold">{stats?.totalRuns || 0}</div>
-                            <p className="text-xs text-zinc-500 font-medium mt-1">Cumulative executions</p>
+                            {stats === null ? (
+                                <div className="space-y-2 mt-0.5">
+                                    <div className="h-7 w-12 bg-zinc-800/80 rounded-lg animate-pulse" />
+                                    <div className="h-3 w-32 bg-zinc-800/50 rounded animate-pulse" />
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="text-2xl font-semibold">{stats.totalRuns}</div>
+                                    <p className="text-xs text-zinc-500 font-medium mt-1">Cumulative executions</p>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl">
+                    {/* Success Rate — priority card (3.1: emerald left-accent bar) */}
+                    <Card className="relative overflow-hidden bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl">
+                        <span className="absolute left-0 top-0 h-full w-[3px] bg-emerald-500/60 rounded-r-full" />
                         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200">
                             <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
                             <CheckCircle className="h-4 w-4 text-emerald-500/80" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-semibold">{stats?.successRate || '0%'}</div>
-                            <p className="text-xs text-zinc-500 font-medium mt-1">{stats?.failedRuns || 0} failed runs recorded</p>
+                            {stats === null ? (
+                                <div className="space-y-2 mt-0.5">
+                                    <div className="h-7 w-16 bg-zinc-800/80 rounded-lg animate-pulse" />
+                                    <div className="h-3 w-28 bg-zinc-800/50 rounded animate-pulse" />
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="text-2xl font-semibold">{stats.successRate}</div>
+                                    <p className="text-xs text-zinc-500 font-medium mt-1">{stats.failedRuns} failed runs recorded</p>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
 
+                    {/* Avg Execution Time */}
                     <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl">
                         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 text-zinc-200">
                             <CardTitle className="text-sm font-medium">Avg Execution Time</CardTitle>
                             <Clock className="h-4 w-4 text-blue-500/80" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-semibold">{stats?.avgDurationSec || '0'}s</div>
-                            <p className="text-xs text-zinc-500 font-medium mt-1">Based on historical data</p>
+                            {stats === null ? (
+                                <div className="space-y-2 mt-0.5">
+                                    <div className="h-7 w-14 bg-zinc-800/80 rounded-lg animate-pulse" />
+                                    <div className="h-3 w-24 bg-zinc-800/50 rounded animate-pulse" />
+                                </div>
+                            ) : (
+                                <>
+                                    {/* 3.4 — show — instead of 0s when no runs exist */}
+                                    <div className="text-2xl font-semibold">
+                                        {stats.totalRuns === 0 || stats.avgDurationSec == null ? '—' : `${stats.avgDurationSec}s`}
+                                    </div>
+                                    {/* 3.3 — dynamic sub-label instead of generic "Based on historical data" */}
+                                    <p className="text-xs text-zinc-500 font-medium mt-1">
+                                        Across {stats.totalRuns} run{stats.totalRuns !== 1 ? 's' : ''}
+                                    </p>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
+
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -424,18 +579,44 @@ export default function DevDashboard() {
                             <CardContent className="space-y-4 pt-6">
                                 <div className="space-y-2">
                                     <Label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Target Date (Optional)</Label>
-                                    <Popover>
+                                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                                         <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start text-left font-medium border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:text-zinc-200 text-zinc-300 h-10">
-                                                <CalendarIcon className="mr-2 h-4 w-4 text-zinc-500" />
-                                                {dateParam ? format(dateParam, "PPP") : <span>Default to Today</span>}
+                                            <Button variant="outline" className="w-full justify-between font-medium border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:text-zinc-200 text-zinc-300 h-10 px-3 transition-all">
+                                                <div className="flex items-center min-w-0">
+                                                    <CalendarIcon className="mr-2 h-4 w-4 text-zinc-500 shrink-0" />
+                                                    <span className="truncate">
+                                                        {dateParam ? format(dateParam, "PPP") : <span className="text-zinc-500">Default to Today</span>}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 shrink-0 ml-2">
+                                                    {dateParam && (
+                                                        <div
+                                                            role="button"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                setDateParam(undefined);
+                                                            }}
+                                                            className="p-1 hover:bg-zinc-700/50 rounded-md transition-colors group/clear"
+                                                        >
+                                                            <X className="h-3.5 w-3.5 text-zinc-500 group-hover/clear:text-zinc-300" />
+                                                        </div>
+                                                    )}
+                                                    <ChevronDown className={cn(
+                                                        "h-4 w-4 text-zinc-500 transition-transform duration-200",
+                                                        isCalendarOpen && "rotate-180"
+                                                    )} />
+                                                </div>
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0 bg-zinc-950 border-zinc-800">
+                                        <PopoverContent className="w-auto p-0 bg-zinc-950 border-zinc-800 shadow-2xl" align="start">
                                             <Calendar
                                                 mode="single"
                                                 selected={dateParam}
-                                                onSelect={setDateParam}
+                                                onSelect={(date) => {
+                                                    setDateParam(date);
+                                                    setIsCalendarOpen(false);
+                                                }}
                                                 initialFocus
                                                 className="bg-zinc-950 text-zinc-200"
                                             />
@@ -465,8 +646,9 @@ export default function DevDashboard() {
                                 </div>
                                 <Dialog open={cronDialogOpen} onOpenChange={setCronDialogOpen}>
                                     <DialogTrigger asChild>
-                                        <Button size="icon" variant="outline" className="h-8 w-8 border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700 hover:text-zinc-100">
-                                            <Plus className="h-4 w-4" />
+                                        <Button size="sm" variant="outline" className="h-8 border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700 hover:text-zinc-100 gap-2 px-3">
+                                            <Plus className="h-3.5 w-3.5" />
+                                            <span>Add Job</span>
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-md bg-[#09090b] border-zinc-800/60 shadow-2xl sm:rounded-2xl">
@@ -507,12 +689,26 @@ export default function DevDashboard() {
                                 ) : (
                                     <div className="divide-y divide-zinc-800/40">
                                         {cronJobs.map(job => (
-                                            <div key={job.id} className="flex items-center justify-between px-6 py-4 hover:bg-zinc-800/20 transition-colors">
-                                                <div>
+                                            <div key={job.id} className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 hover:bg-zinc-800/20 transition-colors gap-4">
+                                                <div className="space-y-1">
                                                     <div className="font-medium text-sm text-zinc-200">{job.name}</div>
-                                                    <div className="text-xs text-zinc-500 font-mono mt-0.5">{job.expression}</div>
+                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                        <div className="text-[10px] text-zinc-500 font-mono bg-zinc-950/40 px-1.5 py-0.5 rounded border border-zinc-800/50 w-fit">{job.expression}</div>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex items-center gap-1 text-[10px] text-zinc-500">
+                                                                <History className="w-3 h-3" />
+                                                                <span>{job.lastRun ? format(new Date(job.lastRun), "MMM d, HH:mm") : 'Never'}</span>
+                                                            </div>
+                                                            {job.isActive && job.nextRun && (
+                                                                <div className="flex items-center gap-1 text-[10px] text-blue-500/70 font-medium">
+                                                                    <Clock className="w-3 h-3" />
+                                                                    <span>Next: {format(new Date(job.nextRun), "MMM d, HH:mm")}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-3 self-end sm:self-center">
                                                     <Switch
                                                         checked={job.isActive}
                                                         onCheckedChange={() => handleToggleCron(job.id, job.isActive)}
@@ -536,10 +732,27 @@ export default function DevDashboard() {
                         <Card className="bg-zinc-900/20 border-zinc-800/40 shadow-none rounded-2xl overflow-hidden">
                             <CardHeader className="border-b border-zinc-800/40 bg-zinc-900/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div className="space-y-1">
-                                    <CardTitle className="text-base text-zinc-200">User Directory & Blacklist</CardTitle>
+                                    <div className="flex items-center gap-3">
+                                        <CardTitle className="text-base text-zinc-200">User Directory & Blacklist</CardTitle>
+                                        {hasUserChanges && (
+                                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 animate-pulse">
+                                                <AlertCircle className="w-3 h-3 text-amber-500" />
+                                                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tight">Unsaved Changes</span>
+                                            </div>
+                                        )}
+                                    </div>
                                     <CardDescription className="text-zinc-500">Map usernames to real names and exclude users from monitor</CardDescription>
                                 </div>
-                                <Button onClick={handleSaveUsers} size="sm" className="bg-zinc-100 text-zinc-900 hover:bg-white font-medium shrink-0 transition-all active:scale-[0.98] cursor-pointer hover:shadow-md">
+                                <Button
+                                    onClick={handleSaveUsers}
+                                    size="sm"
+                                    className={cn(
+                                        "font-medium shrink-0 transition-all active:scale-[0.98] cursor-pointer hover:shadow-md",
+                                        hasUserChanges
+                                            ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+                                            : "bg-zinc-100 text-zinc-900 hover:bg-white"
+                                    )}
+                                >
                                     <Save className="h-4 w-4 mr-2" /> Save user settings
                                 </Button>
                             </CardHeader>
@@ -557,34 +770,57 @@ export default function DevDashboard() {
                                 <div className="max-h-[400px] overflow-y-auto border border-zinc-800/50 rounded-xl divide-y divide-zinc-800/40 bg-zinc-900/30 custom-scrollbar">
                                     {availableUsers
                                         .filter(u => u.toLowerCase().includes(userSearch.toLowerCase()))
-                                        .map(username => (
-                                            <div key={username} className="p-4 grid grid-cols-1 sm:grid-cols-[200px_1fr_auto] items-center gap-x-8 gap-y-4 hover:bg-zinc-800/20 transition-colors">
-                                                <div className="space-y-0.5 min-w-0">
-                                                    <div className="font-mono text-[10px] text-zinc-500 font-bold uppercase tracking-wider truncate">{username}</div>
-                                                    <div className="text-sm font-semibold text-zinc-200 truncate">
-                                                        {userMappings[username] || <span className="text-zinc-600 italic font-normal">No display name</span>}
+                                        .map(username => {
+                                            const isBlacklisted = blacklist.includes(username);
+                                            return (
+                                                <div
+                                                    key={username}
+                                                    className={cn(
+                                                        "p-4 grid grid-cols-1 sm:grid-cols-[200px_1fr_auto] items-center gap-x-8 gap-y-4 transition-all border-l-4",
+                                                        isBlacklisted
+                                                            ? "bg-red-500/5 border-l-red-600/50 opacity-80"
+                                                            : "hover:bg-zinc-800/20 border-l-transparent"
+                                                    )}
+                                                >
+                                                    <div className="space-y-0.5 min-w-0">
+                                                        <div className="font-mono text-[10px] text-zinc-500 font-bold uppercase tracking-wider truncate">{username}</div>
+                                                        <div className={cn(
+                                                            "text-sm font-semibold truncate",
+                                                            isBlacklisted ? "text-zinc-400" : "text-zinc-200"
+                                                        )}>
+                                                            {userMappings[username] || <span className="text-zinc-600 italic font-normal">No display name</span>}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="w-full max-w-[300px]">
+                                                        <Input
+                                                            placeholder="Assign real name..."
+                                                            className="h-9 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-zinc-700 disabled:opacity-50"
+                                                            value={userMappings[username] ?? ""}
+                                                            onChange={(e) => updateUserMapping(username, e.target.value)}
+                                                            disabled={isBlacklisted}
+                                                        />
+                                                    </div>
+
+                                                    <div className={cn(
+                                                        "flex items-center gap-3 px-3 py-2 rounded-xl border transition-colors sm:ml-auto",
+                                                        isBlacklisted
+                                                            ? "bg-red-600/10 border-red-500/30"
+                                                            : "border-zinc-800/60 bg-zinc-950/40"
+                                                    )}>
+                                                        <Label className={cn(
+                                                            "text-xs font-black uppercase whitespace-nowrap tracking-tighter",
+                                                            isBlacklisted ? "text-red-400" : "text-zinc-500"
+                                                        )}>Blacklist</Label>
+                                                        <Switch
+                                                            checked={isBlacklisted}
+                                                            onCheckedChange={() => toggleBlacklist(username)}
+                                                            className="data-[state=checked]:bg-red-600 scale-90"
+                                                        />
                                                     </div>
                                                 </div>
-
-                                                <div className="w-full max-w-[300px]">
-                                                    <Input
-                                                        placeholder="Assign real name..."
-                                                        className="h-9 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-zinc-700"
-                                                        value={userMappings[username] ?? ""}
-                                                        onChange={(e) => updateUserMapping(username, e.target.value)}
-                                                    />
-                                                </div>
-
-                                                <div className="flex items-center gap-3 px-3 py-2 rounded-xl border border-zinc-800/60 bg-zinc-950/40 sm:ml-auto">
-                                                    <Label className="text-[10px] font-black uppercase text-zinc-500 whitespace-nowrap tracking-tighter">Blacklist</Label>
-                                                    <Switch
-                                                        checked={blacklist.includes(username)}
-                                                        onCheckedChange={() => toggleBlacklist(username)}
-                                                        className="data-[state=checked]:bg-red-600 scale-90"
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))
+                                            );
+                                        })
                                     }
                                 </div>
                             </CardContent>
@@ -598,24 +834,45 @@ export default function DevDashboard() {
                                     <CardDescription className="text-zinc-500">Configure score boundaries per workflow</CardDescription>
                                 </div>
                                 <Button onClick={handleUpdateThresholds} size="sm" className="bg-zinc-100 text-zinc-900 hover:bg-white font-medium shrink-0 transition-all active:scale-[0.98] cursor-pointer hover:shadow-md">
-                                    <Save className="h-4 w-4 mr-2" /> Save configuration
+                                    <Save className="h-4 w-4 mr-2" /> Save Thresholds
                                 </Button>
                             </CardHeader>
                             <CardContent className="pt-6">
-                                <form onSubmit={handleUpdateThresholds} className="space-y-8">
+                                <form onSubmit={handleUpdateThresholds} className="space-y-10">
                                     {configGroups.map((group) => (
                                         <div key={group.title} className="space-y-4">
-                                            <h3 className="text-zinc-400 text-xs font-semibold uppercase tracking-wider px-1">{group.title}</h3>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <h3 className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] px-1">{group.title}</h3>
+                                            <div className={cn(
+                                                "grid grid-cols-1 gap-4",
+                                                group.keys.length === 3 ? "lg:grid-cols-3" : "sm:grid-cols-2"
+                                            )}>
                                                 {group.keys.map((cfg) => {
                                                     const tValues = thresholds[cfg.id] || { emerald: 100, blue: 60, orange: 40, red: 0 };
-                                                    return (
-                                                        <div key={cfg.id} className="p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30 space-y-4">
-                                                            <h4 className="font-semibold text-sm text-zinc-200 mb-2">{cfg.label}</h4>
+                                                    const maxVal = Math.max(tValues.emerald * 1.2, 100);
 
-                                                            <div className="grid grid-cols-2 gap-3">
+                                                    return (
+                                                        <div key={cfg.id} className="p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30 space-y-5">
+                                                            <h4 className="font-semibold text-sm text-zinc-200">{cfg.label}</h4>
+
+                                                            {/* 7.2: Live Preview Bar */}
+                                                            <div className="space-y-2">
+                                                                <div className="flex items-center justify-between text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">
+                                                                    <span>Spectrum Preview</span>
+                                                                    <span>Max {Math.round(maxVal)}</span>
+                                                                </div>
+                                                                <div className="h-2 w-full flex rounded-full overflow-hidden bg-zinc-800/50 border border-zinc-800/50">
+                                                                    <div style={{ width: `${(tValues.red / maxVal) * 100}%` }} className="h-full bg-red-600/40" />
+                                                                    <div style={{ width: `${((tValues.orange - tValues.red) / maxVal) * 100}%` }} className="h-full bg-orange-500/50" />
+                                                                    <div style={{ width: `${((tValues.blue - tValues.orange) / maxVal) * 100}%` }} className="h-full bg-blue-500/50" />
+                                                                    <div style={{ width: `${((tValues.emerald - tValues.blue) / maxVal) * 100}%` }} className="h-full bg-emerald-500/50" />
+                                                                    <div className="flex-1 bg-emerald-500" />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                                                                {/* 7.1: Semantic Labels */}
                                                                 <div className="space-y-1.5 flex flex-col">
-                                                                    <Label className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Emerald &ge;</Label>
+                                                                    <Label className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Excellent &ge;</Label>
                                                                     <Input
                                                                         type="number"
                                                                         className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-emerald-500/50"
@@ -624,7 +881,7 @@ export default function DevDashboard() {
                                                                     />
                                                                 </div>
                                                                 <div className="space-y-1.5 flex flex-col">
-                                                                    <Label className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">Blue &ge;</Label>
+                                                                    <Label className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">Good &ge;</Label>
                                                                     <Input
                                                                         type="number"
                                                                         className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-blue-500/50"
@@ -633,7 +890,7 @@ export default function DevDashboard() {
                                                                     />
                                                                 </div>
                                                                 <div className="space-y-1.5 flex flex-col">
-                                                                    <Label className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">Orange &ge;</Label>
+                                                                    <Label className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">Needs Work &ge;</Label>
                                                                     <Input
                                                                         type="number"
                                                                         className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-orange-500/50"
@@ -642,7 +899,7 @@ export default function DevDashboard() {
                                                                     />
                                                                 </div>
                                                                 <div className="space-y-1.5 flex flex-col">
-                                                                    <Label className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Red &ge;</Label>
+                                                                    <Label className="text-[10px] text-red-500 font-bold uppercase tracking-wider">Critical &ge;</Label>
                                                                     <Input
                                                                         type="number"
                                                                         className="h-8 bg-zinc-950 border-zinc-800 text-sm focus-visible:ring-red-500/50"
