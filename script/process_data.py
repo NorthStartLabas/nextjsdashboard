@@ -336,7 +336,7 @@ def main():
                         total_hus = len(df_hu_merged)
                         picked_hus = len(df_hu_merged[df_hu_merged['IS_PICKED'] == True])
                         total_lines = len(df_ltap_dept)
-                        total_items = df_ltap_dept['NISTA'].sum()
+                        total_items = df_ltap_dept['VSOLA'].sum()
                         
                         dashboard_json = {
                             "open_deliveries": len(df_likp_dept),
