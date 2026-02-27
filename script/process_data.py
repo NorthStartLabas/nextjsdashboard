@@ -439,7 +439,7 @@ def main():
                             'NISTA': 'sum',
                             'VSOLA': 'sum',
                             'VBELN': 'count' # Line count
-                        }).rename(columns={'VBELN': 'LINES_COUNT', 'NISTA': 'ITEMS_COUNT'}).reset_index()
+                        }).rename(columns={'VBELN': 'LINES_COUNT', 'VSOLA': 'ITEMS_COUNT'}).reset_index()
                         
                         # Get HU count per delivery
                         hu_counts = df_hu_merged.groupby('VBELN').size().reset_index(name='HU_PER_DELIV')

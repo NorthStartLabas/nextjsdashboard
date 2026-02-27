@@ -1571,7 +1571,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
 
                                     {/* Status Section */}
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Picked Status</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Pick Status</label>
                                         <div className="flex flex-col gap-2">
                                             {filterOptions.statuses.map(s => (
                                                 <button
@@ -1606,7 +1606,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                                             : "bg-zinc-900/50 border-zinc-800/50 text-zinc-400 hover:border-zinc-700 hover:text-white"
                                                     )}
                                                 >
-                                                    {g === 'OK' ? 'Grouped (OK)' : 'Not Grouped'}
+                                                    {g === 'OK' ? 'GROUPED' : 'Not Grouped'}
                                                     {huGroupedFilter.includes(g) && <CheckCircle2 className="w-3.5 h-3.5" />}
                                                 </button>
                                             ))}
@@ -1630,7 +1630,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                                             : "bg-zinc-900/50 border-zinc-800/50 text-zinc-400 hover:border-zinc-700 hover:text-white"
                                                     )}
                                                 >
-                                                    {opt === 'Empty' ? 'No user (empty)' : 'Has user'}
+                                                    {opt === 'Empty' ? 'NO' : 'YES'}
                                                     {huPickInitiatedFilter.includes(opt) && <CheckCircle2 className="w-3.5 h-3.5" />}
                                                 </button>
                                             ))}
@@ -1742,7 +1742,7 @@ export default function BFlowDashboard({ title, type }: { title: string, type: '
                                                         <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Pick Initiated</TableHead>
                                                         {type !== 'ms' && <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Floor</TableHead>}
                                                         <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-center">Status</TableHead>
-                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-right pr-8">Lns / Itm</TableHead>
+                                                        <TableHead className="text-[11px] font-black uppercase text-zinc-500 h-14 text-right pr-8">Lines / Items</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
